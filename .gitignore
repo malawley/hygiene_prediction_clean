@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.ipynb_checkpoints
+*.pkl
+
+# Environment
+.env
+.venv/
+env/
+venv/
+
+# Data
+data/
+models/
+
+# Jupyter
+.ipynb_checkpoints
+
+# OS
+.DS_Store
+__pycache__/
+*.py[cod]
+*.ipynb_checkpoints
+*.pkl
+.env
+venv/
+env/
+data/
+models/
+.DS_Store

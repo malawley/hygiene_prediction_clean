@@ -1,0 +1,3 @@
+Project: Predicting Chicago Restaurant Hand Hygiene Violations
+ 
+Description: This project aims to predict whether a restaurant in Chicago is likely to receive a hand hygiene–related violation during its next health inspection, using publicly available inspection data from the City of Chicago. Hand hygiene violations, such as lack of handwashing, missing soap, or unsanitary sinks, are critical to preventing the spread of foodborne illness. By identifying patterns in past inspections, risk levels, inspection types, locations, and temporal factors, we train a machine learning model to flag establishments with higher likelihood of future violations. This predictive approach can help public health officials prioritize inspections and allocate resources more effectively.
