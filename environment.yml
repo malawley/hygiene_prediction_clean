@@ -1,0 +1,37 @@
+name: hygiene-ml
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - pandas
+  - numpy
+  - matplotlib
+  - seaborn
+  - scikit-learn
+  - jupyterlab
+  - notebook
+  - polars
+  - xgboost
+  - psycopg2
+  - fastapi
+  - uvicorn
+  - flask
+  - boto3
+  - s3fs
+  - google-cloud-storage
+  - google-cloud-bigquery
+  - sqlalchemy
+  - openpyxl
+  - pip:
+      - pyjanitor
+      - textblob
+      - dateparser
+      - missingno
+      - docker
+      - nltk
+      - spacy
+      - streamlit
+      - dash
+      - plotly
