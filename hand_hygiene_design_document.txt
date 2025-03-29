@@ -1,0 +1,226 @@
+# Hand Hygiene Violation Prediction Pipeline Design
+
+## Objective
+Build a production-grade, cloud-native data pipeline to predict whether a given food facility in Chicago will receive a hand hygiene violation on its next inspection.
+
+## Overview of Architecture
+
+This pipeline consists of the following components:
+
+1. **Extractor (Go)**
+2. **Raw Data Lake (MinIO/GCS)**
+3. **Cleaner (Python + Polars)**
+4. **Partitioned BigQuery Tables**
+5. **ML Services & Visualization (To Be Developed)**
+
+---
+
+## 1. Extractor (Go)
+
+### Responsibilities
+- Fetches data from the City of Chicago's public API:
+  `https://data.cityofchicago.org/resource/qizy-d2wf.json`
+- Handles pagination using `$limit` and `$offset` (1000 records per call)
+- Writes each chunk as a standalone JSON file to:
+  `raw-data/YYYY-MM-DD/offset_<N>.json`
+- After all chunks for a given date are successfully uploaded, writes:
+  `_manifest.json` to `raw-data/YYYY-MM-DD/`
+- Designed to run daily (via cron) and support concurrent fetching using goroutines
+
+### Example Manifest:
+```json
+{
+  "date": "2024-03-28",
+  "files": [
+    "offset_0.json",
+    "offset_1000.json"
+  ],
+  "upload_complete": true
+}
+```
+
+## 2. Data Lake (MinIO for Dev, GCS for Cloud)
+
+### Structure
+- Emulates directory-like layout using object prefixes:
+
+```
+raw-data/
+  2024-03-28/
+    offset_0.json
+    offset_1000.json
+    _manifest.json
+```
+
+- Immutable raw files
+- Storage is abstracted behind a Go/Python interface
+- Designed for portability between local (MinIO) and cloud (GCS)
+
+## 3. Cleaner (Python + Polars)
+
+### Responsibilities
+- Waits for `_manifest.json` per date
+- Reads each raw JSON chunk from `raw-data/YYYY-MM-DD/`
+- Drops unused columns, tokenizes inspection descriptions
+- Writes cleaned output to:
+  `clean-data/YYYY-MM-DD/offset_<N>.json`
+- Designed to support concurrency (e.g., multithreaded file processing)
+
+### Triggering
+- Cleaner is not directly called by extractor
+- Instead, runs independently (e.g., via cron or loop)
+- Monitors for manifests, processes only when `upload_complete: true`
+
+## 4. BigQuery Integration
+
+### Raw Data
+- Raw JSONs may optionally be loaded into `raw_data` dataset in BigQuery
+- Useful for debugging or validation
+
+### Cleaned Data
+- Cleaned files are ingested into partitioned BigQuery tables:
+  - `clean_data.cleaned_inspections` (partitioned by inspection_date)
+
+### Future Use:
+- `clean_data` serves as the foundation for:
+  - ML feature engineering
+  - Dashboards and reports
+
+---
+
+## 5. ML Training and Model Selection Design
+
+### Training Workflow
+- Extract features from `clean_data.cleaned_inspections`
+- Split into training and validation sets based on inspection_date or stratified sampling
+- Train model (e.g., logistic regression, random forest, XGBoost)
+- Evaluate performance on validation set using:
+  - Accuracy, Precision, Recall, F1 Score, ROC AUC, Log Loss
+- Store predictions, evaluation metrics, and training metadata in BigQuery
+
+### Model Versioning and Tracking
+- Each model run is tagged with a `model_version` or UUID
+- Store metadata in `ml_metadata.model_runs` with:
+  - Train/validation date ranges
+  - Algorithm and hyperparameters
+  - Metrics and features used
+
+### Model Selection Strategy
+- Track all runs in BigQuery and evaluate based on multiple metrics
+- Automatically promote best-performing model (e.g., by F1 score) for scoring
+- Optionally, include business rules (e.g., minimum recall threshold)
+
+### Downstream Use
+- Selected model is used for batch prediction or real-time scoring
+- Outputs stored in `ml_outputs.predictions` for dashboarding and alerting
+
+---
+
+## 6. BigQuery Schema Design
+
+### Table: `ml_metadata.model_runs`
+Tracks metadata and performance of each model training run.
+
+| Column             | Type            | Description                              |
+|--------------------|------------------|------------------------------------------|
+| model_version      | STRING           | Unique version identifier                |
+| train_date         | DATE             | Date model was trained                   |
+| algorithm          | STRING           | Model type used (e.g., RandomForest)     |
+| hyperparameters    | STRING           | JSON string of key params                |
+| train_rows         | INTEGER          | Number of training examples              |
+| val_rows           | INTEGER          | Number of validation examples            |
+| accuracy           | FLOAT            | Overall accuracy                         |
+| precision          | FLOAT            | Positive class precision                 |
+| recall             | FLOAT            | Positive class recall                    |
+| f1_score           | FLOAT            | Harmonic mean of precision & recall      |
+| roc_auc            | FLOAT            | ROC AUC score                            |
+| log_loss           | FLOAT            | Log loss (optional)                      |
+| features_used      | ARRAY<STRING>    | List of features                         |
+| notes              | STRING           | Freeform comments                        |
+
+### Table: `ml_outputs.predictions`
+Stores predicted probabilities and binary predictions.
+
+| Column             | Type            | Description                              |
+|--------------------|------------------|------------------------------------------|
+| facility_id        | STRING           | Unique identifier for the facility       |
+| inspection_date    | DATE             | Date of predicted inspection             |
+| predicted_prob     | FLOAT            | Probability of hygiene violation         |
+| predicted_label    | INT64            | Binary label (0/1)                       |
+| model_version      | STRING           | Model used for prediction                |
+| prediction_date    | DATE             | Date the prediction was made             |
+| top_features       | STRING           | Optional: JSON of key feature values     |
+
+### Table: `ml_features.training_set`
+Stores labeled training examples with all features.
+
+| Column             | Type            | Description                              |
+|--------------------|------------------|------------------------------------------|
+| facility_id        | STRING           | Facility being predicted                 |
+| feature_date       | DATE             | Date of feature snapshot                 |
+| risk_level         | STRING           | Example feature                          |
+| zip_code           | STRING           | Example feature                          |
+| prior_violations   | INT64            | Example feature                          |
+| ...                | VARIES           | Other features                           |
+| label              | INT64            | Actual outcome (0/1)                     |
+
+---
+
+## 7. Visualization Dashboard Design
+
+### Dashboard Structure
+The dashboard will have two primary views:
+
+#### A. Data-Focused Dashboard
+For analysts and public health teams to explore inspection patterns.
+
+- Violations by risk level, ZIP code, and inspection type
+- Trends over time (monthly/weekly violations)
+- Geographic heat maps of violation density
+- Filterable tables of inspection records
+
+**Data Source:** `clean_data.cleaned_inspections`
+
+#### B. ML-Focused Dashboard
+For model performance monitoring and decision support.
+
+- Top predicted high-risk facilities
+- Predicted probabilities with confidence thresholds
+- Model performance metrics (e.g., ROC AUC, F1, precision)
+- SHAP/explainability visualizations (optional)
+
+**Data Source:** `ml_outputs.predictions`, `ml_metadata.model_runs`
+
+### Tools Considered
+- **Looker Studio**: Native BQ integration, great for dashboards
+- **Streamlit**: Python-based, custom apps with interactive elements
+- **Metabase / Tableau**: Alternative options depending on org needs
+
+Dashboards will be built to support both operational decision-making and long-term model evaluation.
+
+---
+
+## Why This Architecture Works
+
+| Principle               | Design Choice                                   |
+|------------------------|--------------------------------------------------|
+| Modularity             | Extractor and cleaner are decoupled              |
+| Cloud-readiness        | Storage layer is abstracted (MinIO → GCS)         |
+| Fault tolerance        | Manifest-driven coordination                     |
+| Scalability            | Concurrent fetch/clean paths                     |
+| ML-friendly            | Partitioned BigQuery tables, tokenized fields    |
+| Insight delivery       | Visualizations aligned to both data and ML ops   |
+
+---
+
+## Next Steps
+
+- Begin implementation of BigQuery loader from clean-data bucket
+- Develop modular cleaner to support both historical and daily runs
+- Implement training and scoring pipelines
+- Define dashboard views and model performance monitors
+
+This document captures the design up to and including ML training, model selection, schema setup, and dashboard design for prediction tracking and decision support.
+
+
+
