@@ -1,0 +1,155 @@
+Folder PATH listing for volume OS
+Volume serial number is 84D2-A69F
+C:.
+¦   bq_loader.py
+¦   directory_structure.txt
+¦   run_cleaner.py
+¦   
++---cleaner
+¦   ¦   cleaner.ipynb
+¦   ¦   cleaner.py
+¦   ¦   run_cleaner.py
+¦   ¦   __init__.py
+¦   ¦   
+¦   +---.ipynb_checkpoints
+¦   ¦       cleaner-checkpoint.ipynb
+¦   ¦       
+¦   +---__pycache__
+¦           cleaner.cpython-310.pyc
+¦           __init__.cpython-310.pyc
+¦           
++---extractor
+¦   ¦   extractor.go
+¦   ¦   go.mod
+¦   ¦   go.sum
+¦   ¦   offset_0.json
+¦   ¦   test_gcs.go
+¦   ¦   
+¦   +---.ipynb_checkpoints
+¦   ¦       cleaner-checkpoint.ipynb
+¦   ¦       
+¦   +---raw-data
+¦       +---2025-03-29
+¦               offset_0.json
+¦               offset_1000.json
+¦               offset_10000.json
+¦               offset_100000.json
+¦               offset_101000.json
+¦               offset_102000.json
+¦               offset_103000.json
+¦               offset_104000.json
+¦               offset_105000.json
+¦               offset_106000.json
+¦               offset_107000.json
+¦               offset_108000.json
+¦               offset_109000.json
+¦               offset_11000.json
+¦               offset_110000.json
+¦               offset_111000.json
+¦               offset_112000.json
+¦               offset_113000.json
+¦               offset_114000.json
+¦               offset_115000.json
+¦               offset_116000.json
+¦               offset_12000.json
+¦               offset_13000.json
+¦               offset_14000.json
+¦               offset_15000.json
+¦               offset_16000.json
+¦               offset_17000.json
+¦               offset_18000.json
+¦               offset_19000.json
+¦               offset_2000.json
+¦               offset_20000.json
+¦               offset_21000.json
+¦               offset_22000.json
+¦               offset_23000.json
+¦               offset_24000.json
+¦               offset_25000.json
+¦               offset_26000.json
+¦               offset_27000.json
+¦               offset_28000.json
+¦               offset_29000.json
+¦               offset_3000.json
+¦               offset_30000.json
+¦               offset_31000.json
+¦               offset_32000.json
+¦               offset_33000.json
+¦               offset_34000.json
+¦               offset_35000.json
+¦               offset_36000.json
+¦               offset_37000.json
+¦               offset_38000.json
+¦               offset_39000.json
+¦               offset_4000.json
+¦               offset_40000.json
+¦               offset_41000.json
+¦               offset_42000.json
+¦               offset_43000.json
+¦               offset_44000.json
+¦               offset_45000.json
+¦               offset_46000.json
+¦               offset_47000.json
+¦               offset_48000.json
+¦               offset_49000.json
+¦               offset_5000.json
+¦               offset_50000.json
+¦               offset_51000.json
+¦               offset_52000.json
+¦               offset_53000.json
+¦               offset_54000.json
+¦               offset_55000.json
+¦               offset_56000.json
+¦               offset_57000.json
+¦               offset_58000.json
+¦               offset_59000.json
+¦               offset_6000.json
+¦               offset_60000.json
+¦               offset_61000.json
+¦               offset_62000.json
+¦               offset_63000.json
+¦               offset_64000.json
+¦               offset_65000.json
+¦               offset_66000.json
+¦               offset_67000.json
+¦               offset_68000.json
+¦               offset_69000.json
+¦               offset_7000.json
+¦               offset_70000.json
+¦               offset_71000.json
+¦               offset_72000.json
+¦               offset_73000.json
+¦               offset_74000.json
+¦               offset_75000.json
+¦               offset_76000.json
+¦               offset_77000.json
+¦               offset_78000.json
+¦               offset_79000.json
+¦               offset_8000.json
+¦               offset_80000.json
+¦               offset_81000.json
+¦               offset_82000.json
+¦               offset_83000.json
+¦               offset_84000.json
+¦               offset_85000.json
+¦               offset_86000.json
+¦               offset_87000.json
+¦               offset_88000.json
+¦               offset_89000.json
+¦               offset_9000.json
+¦               offset_90000.json
+¦               offset_91000.json
+¦               offset_92000.json
+¦               offset_93000.json
+¦               offset_94000.json
+¦               offset_95000.json
+¦               offset_96000.json
+¦               offset_97000.json
+¦               offset_98000.json
+¦               offset_99000.json
+¦               _manifest.json
+¦               
++---loader
++---logs
+        cleaner_run.log
+        

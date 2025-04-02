@@ -1,0 +1,14 @@
+2025-03-31 15:30:52,235 — INFO — Using ADC credentials for project: hygiene-prediction
+2025-03-31 15:30:52,235 — INFO — Credentials type: <class 'google.oauth2.credentials.Credentials'>
+2025-03-31 15:30:52,235 — INFO — Quota project ID: hygiene-prediction
+2025-03-31 15:30:52,235 — INFO — === Starting JSON to NDJSON conversion for 2025-03-31 ===
+2025-03-31 15:30:54,119 — INFO — Starting NDJSON conversion for: offset_0.json
+2025-03-31 15:30:57,252 — INFO — Uploaded NDJSON: clean-data-ndjson/2025-03-31/offset_0.ndjson
+2025-03-31 15:30:57,253 — INFO — Starting NDJSON conversion for: offset_1000.json
+2025-03-31 15:31:00,551 — INFO — Uploaded NDJSON: clean-data-ndjson/2025-03-31/offset_1000.ndjson
+2025-03-31 15:31:00,554 — INFO — Starting NDJSON conversion for: offset_2000.json
+2025-03-31 15:31:03,556 — INFO — Uploaded NDJSON: clean-data-ndjson/2025-03-31/offset_2000.ndjson
+2025-03-31 15:31:03,557 — INFO — Starting NDJSON conversion for: offset_3000.json
+2025-03-31 15:31:06,704 — INFO — Uploaded NDJSON: clean-data-ndjson/2025-03-31/offset_3000.ndjson
+2025-03-31 15:31:06,807 — INFO — Wrote NDJSON manifest to gs://cleaned-inspection-data-row/clean-data-ndjson/2025-03-31/_manifest.json
+2025-03-31 15:31:06,807 — INFO — === Finished NDJSON conversion for 2025-03-31 ===

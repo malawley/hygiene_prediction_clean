@@ -1,0 +1,12 @@
+2025-03-31 15:31:30,779 — INFO — Using ADC credentials for project: hygiene-prediction
+2025-03-31 15:31:30,779 — INFO — Credentials type: <class 'google.oauth2.credentials.Credentials'>
+2025-03-31 15:31:30,779 — INFO — Quota project ID: hygiene-prediction
+2025-03-31 15:31:34,315 — INFO — Dataset already exists: hygiene-prediction.HygienePredictionColumn
+2025-03-31 15:31:35,055 — INFO — Loading Parquet file into BigQuery: gs://cleaned-inspection-data-column/clean-data/2025-03-31/offset_0.parquet
+2025-03-31 15:31:37,603 — INFO — Loaded: offset_0.parquet into hygiene-prediction.HygienePredictionColumn.CleanedInspectionColumn
+2025-03-31 15:31:37,617 — INFO — Loading Parquet file into BigQuery: gs://cleaned-inspection-data-column/clean-data/2025-03-31/offset_1000.parquet
+2025-03-31 15:31:42,090 — INFO — Loaded: offset_1000.parquet into hygiene-prediction.HygienePredictionColumn.CleanedInspectionColumn
+2025-03-31 15:31:42,090 — INFO — Loading Parquet file into BigQuery: gs://cleaned-inspection-data-column/clean-data/2025-03-31/offset_2000.parquet
+2025-03-31 15:31:44,295 — INFO — Loaded: offset_2000.parquet into hygiene-prediction.HygienePredictionColumn.CleanedInspectionColumn
+2025-03-31 15:31:44,295 — INFO — Loading Parquet file into BigQuery: gs://cleaned-inspection-data-column/clean-data/2025-03-31/offset_3000.parquet
+2025-03-31 15:31:46,872 — INFO — Loaded: offset_3000.parquet into hygiene-prediction.HygienePredictionColumn.CleanedInspectionColumn

@@ -1,0 +1,9 @@
+2025/03/31 15:29:51 Extractor started
+2025/03/31 15:29:52 No checkpoint found — starting from offset 0
+2025/03/31 15:29:52 Fetching: https://data.cityofchicago.org/resource/qizy-d2wf.json?$limit=1000&$offset=0
+2025/03/31 15:29:58 Fetching: https://data.cityofchicago.org/resource/qizy-d2wf.json?$limit=1000&$offset=1000
+2025/03/31 15:30:00 Fetching: https://data.cityofchicago.org/resource/qizy-d2wf.json?$limit=1000&$offset=2000
+2025/03/31 15:30:02 Fetching: https://data.cityofchicago.org/resource/qizy-d2wf.json?$limit=1000&$offset=3000
+2025/03/31 15:30:03 Reached max_offset — ending early.
+2025/03/31 15:30:03 Manifest written to: raw-data/2025-03-31/_manifest.json
+2025/03/31 15:30:03 Extractor finished
