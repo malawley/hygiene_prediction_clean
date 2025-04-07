@@ -1,31 +1,24 @@
 # Python
 __pycache__/
 *.py[cod]
-*.ipynb_checkpoints
 *.pkl
-
-# Environment
-.env
-.venv/
-env/
-venv/
-
-# Data
-data/
-models/
 
 # Jupyter
-.ipynb_checkpoints
+.ipynb_checkpoints/
 
-# OS
-.DS_Store
-__pycache__/
-*.py[cod]
-*.ipynb_checkpoints
-*.pkl
+# Environment files
 .env
+.venv/
 venv/
 env/
+
+# Data artifacts
 data/
 models/
+logs/
+
+# Documents
+*.pdf
+
+# OS
 .DS_Store
