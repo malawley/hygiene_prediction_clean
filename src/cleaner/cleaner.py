@@ -224,6 +224,8 @@ def cleaner_8_geolocation(df: pl.DataFrame, logger=None) -> pl.DataFrame:
 
 # === cleaner_9_tokenize_violations ===
 def cleaner_9_tokenize_violations(df: pl.DataFrame, logger=None) -> pl.DataFrame:
+    import re
+
     def log(msg):
         if logger:
             try:
@@ -239,16 +241,45 @@ def cleaner_9_tokenize_violations(df: pl.DataFrame, logger=None) -> pl.DataFrame
         matches = re.findall(r"(?:^|\s)(\d{1,2})(?=\s)", text)
         return [int(code) for code in matches]
 
-    def has_hand_hygiene(codes):
-        return int(any(code in [5, 9, 10, 33, 34, 36, 61] for code in codes))
+    # === Define individual violation codes to flag ===
+    high_freq_codes = [1, 2, 3, 4, 6, 7, 38]
 
+    # === Define code groups for categories ===
+    category_map = {
+        "has_supervision_violation": [1, 2],
+        "has_employee_health_violation": [3, 4],
+        "has_contamination_violation": [23, 24, 25, 26, 27, 28],
+        "has_temp_control_violation": [18, 19, 20, 21, 22],
+        "has_food_source_violation": [11, 12, 13, 14],
+        "has_equipment_violation": [47, 49, 50, 51, 52],
+        # Add more groups here if needed
+    }
+
+    # === Extract violation codes from text ===
     df = df.with_columns([
         pl.col("violations").map_elements(extract_violation_codes, return_dtype=pl.List(pl.Int64)).alias("violation_codes")
     ])
 
+    # === Add violation count ===
     df = df.with_columns([
-        pl.col("violation_codes").list.len().alias("violation_count"),
-        pl.col("violation_codes").map_elements(has_hand_hygiene, return_dtype=pl.Int8).alias("hand_hygiene_flag")
+        pl.col("violation_codes").list.len().alias("violation_count")
     ])
 
+    # === Add flags for individual high-frequency codes ===
+    for code in high_freq_codes:
+        df = df.with_columns([
+            pl.col("violation_codes")
+              .map_elements(lambda codes, code=code: int(code in codes), return_dtype=pl.Int8)
+              .alias(f"has_violation_{code}")
+        ])
+
+    # === Add category-level flags ===
+    for category, codes in category_map.items():
+        df = df.with_columns([
+            pl.col("violation_codes")
+              .map_elements(lambda vlist, codes=codes: int(any(code in vlist for code in codes)), return_dtype=pl.Int8)
+              .alias(category)
+        ])
+
+    log("✅ cleaner_9_tokenize_violations completed.")
     return df
