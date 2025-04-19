@@ -1,0 +1,11 @@
+#!/bin/bash
+docker run --rm --name cleaner \
+  --network microservices-net \
+  -p 8083:8080 \
+  -e RUN_MODE=http \
+  -e BUCKET_NAME=raw-inspection-data \
+  -e CLEAN_ROW_BUCKET_NAME=cleaned-inspection-data-row \
+  -e CLEAN_COL_BUCKET_NAME=cleaned-inspection-data-column \
+  -v "$HOME/gcp-creds/service-account.json:/app/creds.json" \
+  -e GOOGLE_APPLICATION_CREDENTIALS=/app/creds.json \
+  cleaner

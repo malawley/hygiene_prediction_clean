@@ -1,0 +1,4 @@
+google-cloud-storage
+polars
+gunicorn
+werkzeug

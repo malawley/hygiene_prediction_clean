@@ -1,0 +1,97 @@
+version: '3.9'
+
+services:
+  extractor:
+    build:
+      context: ./src/extractor
+    container_name: extractor
+    environment:
+      - HTTP_MODE=true
+      - SERVICE_CONFIG_PATH=/app/services.json
+      - BUCKET_NAME=raw-inspection-data
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/creds.json
+    volumes:
+      - ./src/configure/services.json:/app/services.json
+      - ${HOME}/gcp-creds/service-account.json:/app/creds.json
+    networks:
+      - microservices
+    ports:
+      - "8081:8080"
+
+  trigger:
+    build:
+      context: ./src/trigger
+    container_name: trigger
+    volumes:
+      - ./src/trigger/services.json:/services.json
+      - ./logs:/logs                        
+    environment:
+      - SERVICE_CONFIG_PATH=/services.json
+    networks:
+      - microservices
+    ports:
+      - "8082:8080"
+
+  cleaner:
+    build:
+      context: ./src/cleaner
+    container_name: cleaner
+    volumes:
+      - ./src/configure/services.json:/app/services.json
+      - ${HOME}/gcp-creds/service-account.json:/app/creds.json
+    environment:
+      - RUN_MODE=http
+      - SERVICE_CONFIG_PATH=/app/services.json
+      - BUCKET_NAME=raw-inspection-data
+      - CLEAN_ROW_BUCKET_NAME=cleaned-inspection-data-row
+      - CLEAN_COL_BUCKET_NAME=cleaned-inspection-data-column
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/creds.json
+    networks:
+      - microservices
+    ports:
+      - "8083:8080"
+
+  loader-json:
+    build:
+      context: ./src/loader/json
+    container_name: loader-json
+    volumes:
+      - ${HOME}/gcp-creds/service-account.json:/app/creds.json
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/creds.json
+    networks:
+      - microservices
+    ports:
+      - "8084:8080"
+
+  loader-parquet:
+    build:
+      context: ./src/loader/parquet
+    container_name: loader-parquet
+    volumes:
+      - ${HOME}/gcp-creds/service-account.json:/app/creds.json
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/creds.json
+    networks:
+      - microservices
+    ports:
+      - "8085:8080"
+
+  eda-dashboard:
+    build:
+      context: ./src/dashboards/eda_dashboard
+    container_name: eda-dashboard
+    ports:
+      - "8086:8080"
+    volumes:
+      - ${HOME}/gcp-creds/service-account.json:/app/creds.json
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/creds.json
+    networks:
+      - microservices
+
+
+
+networks:
+  microservices:
+    driver: bridge

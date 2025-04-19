@@ -1,0 +1,14 @@
+{
+  "extractor": {
+    "url": "http://localhost:8080/extract"
+  },
+  "cleaner": {
+    "url": "http://cleaner:8080/clean"
+  },
+  "trigger": {
+    "url": "http://localhost:8082/clean"
+  },
+  "loader": {
+    "url": "http://localhost:8083/load"
+  }
+}

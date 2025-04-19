@@ -1,0 +1,17 @@
+{
+  "extractor": {
+    "url": "http://extractor:8080/extract"
+  },
+  "trigger": {
+    "url": "http://trigger:8080/clean"
+  },
+  "cleaner": {
+    "url": "http://cleaner:8080/clean"
+  },
+  "loader": {
+    "url": "http://loader-json:8080/load"
+  },
+  "loader_parquet": {
+    "url": "http://loader-parquet:8080/load"
+  }
+}
