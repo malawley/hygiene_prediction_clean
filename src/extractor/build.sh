@@ -7,13 +7,8 @@ echo "=== 🛠 Building Extractor ==="
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# Step 2: Compile Go binary using local go.mod
-echo "--- Compiling Go code..."
-GOOS=linux GOARCH=amd64 go build -o build/extractor ./cmd/extractor.go
-echo "✅ Go build successful: build/extractor"
+# Step 2: Build Docker image using multi-stage Dockerfile
+echo "--- Building Docker image (multi-stage)..."
+docker build -t hygiene_prediction-extractor -f Dockerfile .
 
-# Step 3: Build Docker image from current dir
-echo "--- Building Docker image..."
-docker build -t extractor .
-
-echo "✅ Docker image built: extractor"
+echo "✅ Docker image built: hygiene_prediction-extractor"

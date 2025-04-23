@@ -354,6 +354,9 @@ elif page == "Violation Trends Over Time":
         return get_bq_client().query(VIOLATION_TRENDS_QUERY).to_dataframe()
 
     df_trends = load_violation_trends()
+    df_trends["month"] = pd.to_datetime(df_trends["month"])
+    df_trends = df_trends.sort_values("month")
+
 
     st.title("Violation Trends Over Time")
 

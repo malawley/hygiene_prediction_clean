@@ -1,15 +1,20 @@
-# Use a minimal base image for runtime
+# === Stage 1: Build Go app ===
+
+FROM golang:1.23 as builder 
+
+
+WORKDIR /src
+
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /app/extractor ./cmd/extractor.go
+
+# === Stage 2: Minimal runtime image ===
 FROM gcr.io/distroless/base-debian12
 
-# Set working directory in container
 WORKDIR /
 
-# Copy the prebuilt binary and service config
-COPY build/extractor /extractor
-COPY services.json /services.json
+COPY --from=builder /app/extractor /extractor
 
-# Expose port
 EXPOSE 8080
-
-# Run the binary
 CMD ["/extractor"]

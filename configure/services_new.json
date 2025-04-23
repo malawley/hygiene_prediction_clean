@@ -1,0 +1,17 @@
+{
+    "extractor": {
+        "url": "https://extractor-426266876133.us-central1.run.app/extract"
+    },
+    "trigger": {
+        "url": "https://trigger-426266876133.us-central1.run.app/clean"
+    },
+    "cleaner": {
+        "url": "https://cleaner-426266876133.us-central1.run.app/clean"
+    },
+    "loader": {
+        "url": "https://loader-json-426266876133.us-central1.run.app/load"
+    },
+    "loader_parquet": {
+        "url": "https://loader-parquet-426266876133.us-central1.run.app/load"
+    }
+}

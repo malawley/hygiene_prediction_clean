@@ -101,6 +101,142 @@ bq-clear:
 	  'TRUNCATE TABLE `hygiene-prediction.HygienePredictionColumn.CleanedInspectionColumn`'
 	@echo "✅ BigQuery tables cleared."
 
+# === TAG & PUSH CONTAINER TO ARTIFACT REGISTRY ===
+# 
+push:
+	@name=$(word 2, $(MAKECMDGOALS)); \
+	if [ -z "$$name" ]; then \
+		echo "❌ Please provide a service name. Usage: make push trigger"; \
+		exit 1; \
+	fi; \
+	echo "📦 Tagging and pushing image: $$name"; \
+	gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev; \
+	docker tag hygiene_prediction-$$name us-central1-docker.pkg.dev/hygiene-prediction/containers/$$name; \
+	docker push us-central1-docker.pkg.dev/hygiene-prediction/containers/$$name
+
+
+# === DEPLOY TO CLOUD RUN WITH OPTIONAL TRIGGER_URL ===
+# === DEPLOY ANY SERVICE TO CLOUD RUN (OPTIONALLY SET TRIGGER_URL) ===
+# === DEPLOY EACH SERVICE TO CLOUD RUN (STEP 1) ===
+# Note that the python program, deploy_images.py, in the root directory will perform this 
+# automatically for each of the services (it is executable, 
+# run ./deploy_images)
+#--set-env-vars=$$ENV_VARS
+
+# deploy-cloud-run-%: deploy-cloud-run
+# 	@true
+
+
+
+
+# === DEPLOY TRIGGER WITH FULL SERVICE URL CONFIG ===
+# === REDEPLOY ALL MICROSERVICES WITH FULL SERVICE CONFIG ===
+# deploy-cloud-urls:
+# 	@echo "🔍 Fetching Cloud Run service URLs..."
+# 	@EXTRACTOR_URL=$$(gcloud run services describe extractor --platform=managed --region=us-central1 --format='value(status.url)') && \
+# 	CLEANER_URL=$$(gcloud run services describe cleaner --platform=managed --region=us-central1 --format='value(status.url)') && \
+# 	LOADER_JSON_URL=$$(gcloud run services describe loader-json --platform=managed --region=us-central1 --format='value(status.url)') && \
+# 	LOADER_PARQUET_URL=$$(gcloud run services describe loader-parquet --platform=managed --region=us-central1 --format='value(status.url)') && \
+# 	TRIGGER_URL=$$(gcloud run services describe trigger --platform=managed --region=us-central1 --format='value(status.url)') && \
+# 	CONFIG=$$(jq -n --arg ex $$EXTRACTOR_URL \
+# 	               --arg cl $$CLEANER_URL \
+# 	               --arg lj $$LOADER_JSON_URL \
+# 	               --arg lp $$LOADER_PARQUET_URL \
+# 	               --arg tr $$TRIGGER_URL \
+# 	  '{extractor: {url: $$ex + "/extract"}, \
+# 	    cleaner: {url: $$cl + "/clean"}, \
+# 	    loader: {url: $$lj + "/load"}, \
+# 	    loader_parquet: {url: $$lp + "/load"}, \
+# 	    trigger: {url: $$tr + "/clean"}}') && \
+# 	CONFIG_B64=$$(echo "$$CONFIG" | base64 -w 0) && \
+# 	echo "🚀 Redeploying trigger with full service URLs..." && \
+# 	gcloud run deploy trigger \
+# 	  --image=us-central1-docker.pkg.dev/hygiene-prediction/containers/trigger \
+# 	  --platform=managed \
+# 	  --region=us-central1 \
+# 	  --allow-unauthenticated \
+# 	  --memory=1Gi \
+# 	  --timeout=300 \
+# 	  --set-env-vars=SERVICE_CONFIG_B64=$$CONFIG_B64 && \
+# 	echo "✅ Trigger redeployed with full service config."
+
+
+cloud_deploy:
+	@SERVICE=$(word 2, $(MAKECMDGOALS)); \
+	if [ -n "$$SERVICE" ]; then \
+		echo "🚀 Deploying only: $$SERVICE"; \
+		python3 cloud_deploy.py --only $$SERVICE; \
+	else \
+		echo "🚀 Running full pipeline deployment..."; \
+		python3 cloud_deploy.py; \
+	fi
+
+cloud_deploy-%: cloud_deploy
+	@true
+
+
+
+# === DESCRIBE ANY SERVICE ON CLOUD RUN ===
+describe-cloud-run:
+	@SERVICE=$(word 2, $(MAKECMDGOALS)); \
+	if [ -z "$$SERVICE" ]; then \
+		echo "❌ Usage: make describe-cloud-run <service-name>"; \
+		exit 1; \
+	fi; \
+	echo "📋 Describing Cloud Run service: $$SERVICE"; \
+	gcloud run services describe $$SERVICE \
+	  --platform=managed \
+	  --region=us-central1 \
+	  --format="table[box]( \
+	    metadata.name:label=SERVICE, \
+	    status.url:label=URL, \
+	    spec.template.spec.containers[0].env:label=ENV_VARS, \
+	    status.latestReadyRevisionName:label=REVISION, \
+	    status.conditions[?(@.type=='Ready')].status:label=READY, \
+	    status.conditions[?(@.type=='Ready')].message:label=STATUS_MSG \
+	  )"
+
+
+load:
+	@if [ -z "$(word 2,$(MAKECMDGOALS))" ]; then \
+	  echo "❌ Usage: make load <max_offset>"; \
+	else \
+	  curl -X POST https://trigger-wrja4w3inq-uc.a.run.app/run \
+	    -H "Content-Type: application/json" \
+	    -d '{"max_offset": '$(word 2,$(MAKECMDGOALS))'}'; \
+	fi
+
+%:
+	@:
+
+
+
+delete-cloud:
+	@echo "🔴 Deleting all Cloud Run services in hygiene-prediction..."
+	gcloud run services delete trigger --quiet --region=us-central1 --project=hygiene-prediction
+	gcloud run services delete extractor --quiet --region=us-central1 --project=hygiene-prediction
+	gcloud run services delete cleaner --quiet --region=us-central1 --project=hygiene-prediction
+	gcloud run services delete loader-json --quiet --region=us-central1 --project=hygiene-prediction
+	gcloud run services delete loader-parquet --quiet --region=us-central1 --project=hygiene-prediction
+	@echo "✅ Cloud Run services deleted."
+
+
+deploy-all:
+	@echo "🚀 Running full pipeline deployment..."
+	python3 cloud_deploy.py 
+
+
+
+# Allow make describe-cloud-run trigger
+describe-cloud-run-%: describe-cloud-run
+	@true
+
+
+
+
+
 # === FALLBACK (ignore unknown args like make extract 2000) ===
 %:
 	@true
+
+

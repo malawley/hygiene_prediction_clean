@@ -10,44 +10,61 @@ import argparse
 from datetime import datetime
 from werkzeug.wrappers import Request, Response
 
-
-# === Logging Setup ===
+# === Logging Setup (Cloud Native) ===
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s — %(levelname)s — %(message)s"
+)
 logger = logging.getLogger("bq_parquet_loader")
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s — %(levelname)s — %(message)s")
-file_handler = logging.FileHandler("logs/bq_parquet_loader.log")
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
 
-# === Constants ===
-BUCKET_NAME = "cleaned-inspection-data-column"
-GCS_PREFIX = "clean-data"
-BQ_PROJECT = "hygiene-prediction"
-BQ_DATASET = "HygienePredictionColumn"
-BQ_TABLE = "CleanedInspectionColumn"
+# === Config from Environment ===
+BUCKET_NAME = os.environ["BUCKET_NAME"]
+GCS_PREFIX = os.environ.get("GCS_PREFIX", "clean-data")
+BQ_PROJECT = os.environ.get("BQ_PROJECT", "hygiene-prediction")
+BQ_DATASET = os.environ.get("BQ_DATASET", "HygienePredictionColumn")
+BQ_TABLE = os.environ.get("BQ_TABLE", "CleanedInspectionColumn")
+
+# === Trigger URL from environment or SERVICE_CONFIG_B64 ===
+trigger_url = os.environ.get("TRIGGER_URL")
+
+if not trigger_url:
+    config_b64 = os.environ.get("SERVICE_CONFIG_B64")
+    if config_b64:
+        try:
+            decoded = base64.b64decode(config_b64).decode()
+            service_config = json.loads(decoded)
+            trigger_url = service_config.get("trigger", {}).get("url")
+            logger.info(f"📡 Loaded trigger URL from SERVICE_CONFIG_B64: {trigger_url}")
+        except Exception as e:
+            logger.error(f"❌ Failed to parse SERVICE_CONFIG_B64: {e}")
+
+if not trigger_url:
+    logger.warning("⚠️ Trigger URL is not set — downstream notifications will be skipped")
+
+
 
 def ensure_dataset_exists(bq_client, dataset_id: str):
     try:
         bq_client.get_dataset(dataset_id)
-        logger.info(f"Dataset already exists: {dataset_id}")
-        print(f"✅ Dataset found: {dataset_id}")
+        logger.info(f"✅ Dataset exists: {dataset_id}")
     except NotFound:
         dataset = bigquery.Dataset(dataset_id)
         dataset.location = "US"
         bq_client.create_dataset(dataset)
-        logger.info(f"Created dataset: {dataset_id}")
-        print(f"🆕 Created dataset: {dataset_id}")
+        logger.info(f"🆕 Created dataset: {dataset_id}")
     except Exception as e:
-        logger.exception(f"Error checking or creating dataset: {dataset_id}")
+        logger.exception(f"❌ Error checking or creating dataset: {dataset_id}")
         raise
 
 def log_active_credentials():
     credentials, project = default()
-    logger.info(f"Using ADC credentials for project: {project}")
-    print(f"🔐 Using credentials for project: {project}")
+    logger.info(f"🔐 Using ADC credentials for project: {project}")
     logger.info(f"Credentials type: {type(credentials)}")
-    if hasattr(credentials, 'quota_project_id'):
+    if hasattr(credentials, "quota_project_id"):
         logger.info(f"Quota project ID: {credentials.quota_project_id}")
+    if hasattr(credentials, "service_account_email"):
+        logger.info(f"Service Account: {credentials.service_account_email}")
+
 
 def load_manifest(storage_client, date: str):
     manifest_path = f"{GCS_PREFIX}/{date}/_manifest.json"
@@ -55,21 +72,29 @@ def load_manifest(storage_client, date: str):
     manifest_blob = bucket.blob(manifest_path)
 
     if not manifest_blob.exists():
-        logger.warning(f"No manifest found at {manifest_path}")
-        print(f"⚠️ No manifest found for {date}")
+        logger.warning(f"⚠️ No manifest found at: gs://{BUCKET_NAME}/{manifest_path}")
         return []
 
-    manifest = json.loads(manifest_blob.download_as_text())
+    try:
+        manifest = json.loads(manifest_blob.download_as_text())
+    except Exception as e:
+        logger.error(f"❌ Failed to parse manifest at {manifest_path}: {e}")
+        return []
+
     if not manifest.get("upload_complete", False):
-        logger.info(f"Manifest found but not marked complete.")
-        print(f"⚠️ Manifest not marked complete for {date}")
+        logger.info(f"⚠️ Manifest for {date} found but not marked complete.")
         return []
 
-    return manifest["files"]
+    file_count = len(manifest.get("files", []))
+    logger.info(f"📦 Loaded manifest for {date} with {file_count} file(s).")
+
+    return manifest.get("files", [])
+
 
 def load_parquet_to_bigquery(date: str):
-    print(f"🚀 Starting BigQuery Parquet load for {date}...")
+    logger.info(f"🚀 Starting BigQuery Parquet load for {date}...")
     start = time.time()
+
     storage_client = storage.Client()
     bq_client = bigquery.Client()
 
@@ -78,14 +103,15 @@ def load_parquet_to_bigquery(date: str):
 
     files = load_manifest(storage_client, date)
     if not files:
-        logger.info("No files listed in manifest. Skipping.")
-        return
+        logger.info(f"⚠️ No files listed in manifest for {date}. Skipping load.")
+        return 0, 0.0
 
     count = 0
     for filename in files:
         gcs_uri = f"gs://{BUCKET_NAME}/{GCS_PREFIX}/{date}/{filename}"
-        logger.info(f"Loading Parquet file into BigQuery: {gcs_uri}")
-        print(f"⏳ Loading: {filename}")
+        table_id = f"{BQ_PROJECT}.{BQ_DATASET}.{BQ_TABLE}"
+
+        logger.info(f"⏳ Loading Parquet file into BigQuery: {gcs_uri}")
 
         job_config = bigquery.LoadJobConfig(
             source_format=bigquery.SourceFormat.PARQUET,
@@ -93,24 +119,17 @@ def load_parquet_to_bigquery(date: str):
             schema_update_options=["ALLOW_FIELD_ADDITION"],
         )
 
-        table_id = f"{BQ_PROJECT}.{BQ_DATASET}.{BQ_TABLE}"
-
         try:
-            load_job = bq_client.load_table_from_uri(
-                gcs_uri, table_id, job_config=job_config
-            )
+            load_job = bq_client.load_table_from_uri(gcs_uri, table_id, job_config=job_config)
             load_job.result()
-            logger.info(f"Loaded: {filename} into {table_id}")
-            print(f"✅ Loaded: {filename}")
+            logger.info(f"✅ Loaded: {filename} into {table_id}")
             count += 1
         except Exception as e:
-            logger.exception(f"❌ Failed to load {filename}: {e}")
-            print(f"❌ ERROR loading {filename} — see log")
+            logger.exception(f"❌ Failed to load {filename} into BigQuery: {e}")
 
-    print(f"🎉 BigQuery Parquet load complete: {count} file(s) processed.")
-    # Notify trigger
-    # Compute Duration
     duration = round(time.time() - start, 3)
+    logger.info(f"🎉 BigQuery Parquet load complete: {count} file(s) processed in {duration} seconds.")
+
     payload = {
         "event": "loader_parquet_completed",
         "origin": "parquet_loader",
@@ -118,62 +137,47 @@ def load_parquet_to_bigquery(date: str):
         "files_processed": str(count),
         "timestamp": datetime.utcnow().isoformat(),
         "duration": str(duration),
-        
     }
 
-    trigger_url = os.getenv("TRIGGER_URL", "http://trigger:8080/clean")
-    try:
-        logger.info(f"📤 Posting to trigger: {payload}")
-        response = requests.post(trigger_url, json=payload)
-        logger.info(f"📤 Trigger response: {response.status_code} {response.text}")
-        print(f"✅ Trigger notified: {response.status_code} {response.text}")
-    except Exception as e:
-        logger.error(f"❌ Failed to notify trigger: {e}") 
-        print(f"❌ [Fallback] Failed to notify trigger: {e}")   
+    if trigger_url:
+        try:
+            logger.info(f"📤 Posting to trigger: {payload}")
+            response = requests.post(trigger_url, json=payload, timeout=30)
+            logger.info(f"📤 Trigger response: {response.status_code} {response.text}")
+        except Exception as e:
+            logger.error(f"❌ Failed to notify trigger: {e}")
+    else:
+        logger.warning("⚠️ No valid trigger URL — skipping trigger notification.")
+
+    return count, duration
 
 
-# === HTTP Entry Point ===
+
 def http_entry_point(request):
     try:
         request_json = request.get_json()
         logger.info(f"📥 Received HTTP request: {request_json}")
+
         date = request_json.get("date")
         if not date:
             return ("Missing 'date' in request", 400, {"Content-Type": "text/plain"})
 
-        # Start timer
         start = time.time()
         log_active_credentials()
-        load_parquet_to_bigquery(date)
-        duration = round(time.time() - start, 3)
 
-        # Respond early
-        response_text = f"✅ Parquet load complete for {date}"
-        response = (response_text, 200, {"Content-Type": "text/plain"})
+        files_processed, duration = load_parquet_to_bigquery(date)
+        total_duration = round(time.time() - start, 3)
 
-        # Notify trigger in background
-        def notify():
-            payload = {
-                "event": "loader_parquet_completed",
-                "origin": "parquet_loader",
-                "date": date,
-                "duration": str(duration),
-                "timestamp": datetime.utcnow().isoformat()
-            }
-            try:
-                logger.info(f"📤 Posting to trigger: {payload}")
-                response = requests.post(os.getenv("TRIGGER_URL", "http://trigger:8080/clean"), json=payload)
-                logger.info(f"📤 Trigger response: {response.status_code} {response.text}")
-            except Exception as e:
-                logger.error(f"❌ Failed to notify trigger: {e}")
+        logger.info(f"✅ Parquet load completed for {date} in {total_duration} seconds")
 
-        import threading
-        threading.Thread(target=notify).start()
-
-        return response
+        return (
+            f"✅ Parquet load complete for {date}",
+            200,
+            {"Content-Type": "text/plain"}
+        )
 
     except Exception as e:
-        logger.exception("❌ Loader-parquet failed")
+        logger.exception("❌ Parquet loader failed")
         return (f"❌ Server error: {str(e)}", 500, {"Content-Type": "text/plain"})
 
 

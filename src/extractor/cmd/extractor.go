@@ -2,16 +2,15 @@ package main
 
 import (
 	"bytes"
-	"configure"
 	"context"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -19,6 +18,7 @@ import (
 )
 
 var triggerURL string
+var shutdownRequested = false
 
 // GCSStorage handles writing files to a GCS bucket
 type GCSStorage struct {
@@ -152,13 +152,33 @@ func RunExtractor(date string, maxOffset int, triggerURL string) error {
 	for {
 		url := fmt.Sprintf("https://data.cityofchicago.org/resource/qizy-d2wf.json?$limit=%d&$offset=%d", chunkSize, offset)
 		objectName := fmt.Sprintf("%s/offset_%d.json", folder, offset)
-
 		log.Println("🌐 Fetching:", url)
-		raw, err := fetchData(url)
+
+		var raw []byte
+		var err error
+		delay := 2 * time.Second
+
+		for i := 0; i < 5; i++ {
+			resp, err := http.Get(url)
+			if err != nil {
+				log.Printf("⚠️ Fetch attempt %d failed: %v", i+1, err)
+			} else {
+				defer resp.Body.Close()
+				if resp.StatusCode == http.StatusOK {
+					raw, err = io.ReadAll(resp.Body)
+					break
+				}
+				log.Printf("⚠️ Fetch attempt %d failed: status %d", i+1, resp.StatusCode)
+			}
+			time.Sleep(delay)
+			delay *= 2
+		}
+
 		if err != nil {
-			log.Println("❌ Fetch error:", err)
+			log.Printf("❌ Fetch error after retries: %v", err)
 			break
 		}
+
 		if len(raw) < 100 {
 			log.Println("✅ No more data to fetch.")
 			break
@@ -191,6 +211,11 @@ func RunExtractor(date string, maxOffset int, triggerURL string) error {
 		files = append(files, filepath.Base(objectName))
 		offset += chunkSize
 		storageClient.WriteCheckpoint(bucket, checkpointPath, offset)
+
+		if shutdownRequested {
+			log.Println("🛑 Shutdown flag set — exiting after current chunk.")
+			break
+		}
 
 		if maxOffset > 0 && offset >= initialOffset+maxOffset {
 			log.Println("⏹️ Reached maxOffset — stopping early.")
@@ -267,50 +292,52 @@ func handleExtract(w http.ResponseWriter, r *http.Request, triggerURL string) {
 }
 
 func main() {
-	// ✅ Load environment variables from .env
+	log.Println("📍 Extractor starting main()")
+
 	_ = godotenv.Load()
 
-	// Load trigger URL from services.json
-	configPath := os.Getenv("SERVICE_CONFIG_PATH")
-	if configPath == "" {
-		configPath = "/services.json"
+	triggerURL = os.Getenv("TRIGGER_URL")
+	if triggerURL == "" {
+		log.Fatal("❌ TRIGGER_URL environment variable not set")
 	}
-	cfg, err := configure.LoadServiceConfig(configPath)
-	if err != nil {
-		log.Fatal("❌ Failed to load service config:", err)
-	}
-	triggerURL = cfg.Trigger.URL
 	log.Printf("🔗 Trigger service URL: %s\n", triggerURL)
 
-	// ✅ Set up logging (for both CLI and HTTP)
+	// ✅ Read trigger URL from environment
+	triggerURL = os.Getenv("TRIGGER_URL")
+	if triggerURL == "" {
+		log.Fatal("❌ TRIGGER_URL environment variable not set")
+	}
+	log.Printf("🔗 Trigger service URL: %s\n", triggerURL)
+
+	// Setup logging
 	_ = os.MkdirAll("src/logs", os.ModePerm)
 	logFile, err := os.OpenFile("src/logs/extractor.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err == nil {
-		log.SetOutput(io.MultiWriter(os.Stdout, logFile)) // 🪵 log to both terminal and file
+		log.SetOutput(io.MultiWriter(os.Stdout, logFile))
 	} else {
 		log.SetOutput(os.Stdout)
 		log.Println("⚠️ Could not open log file — using stdout only:", err)
 	}
 	defer logFile.Close()
 
-	// ✅ HTTP mode
-	if os.Getenv("HTTP_MODE") == "true" {
+	// HTTP Mode
+
+	if strings.ToLower(strings.TrimSpace(os.Getenv("HTTP_MODE"))) == "true" {
 		log.Println("🚀 Starting Extractor in HTTP mode on :8080")
+
 		http.HandleFunc("/extract", func(w http.ResponseWriter, r *http.Request) {
 			handleExtract(w, r, triggerURL)
 		})
+
+		http.HandleFunc("/shutdown", func(w http.ResponseWriter, r *http.Request) {
+			log.Println("🛑 Shutdown requested — will exit after current fetch.")
+			shutdownRequested = true
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("Shutdown initiated."))
+		})
+
 		log.Fatal(http.ListenAndServe(":8080", nil))
 		return
 	}
 
-	// ✅ CLI mode
-	log.Println("🧪 Extractor running in CLI mode")
-	maxOffset := flag.Int("max_offset", -1, "Optional: maximum offset to fetch for testing")
-	flag.Parse()
-
-	today := time.Now().Format("2006-01-02")
-	err = RunExtractor(today, *maxOffset, triggerURL)
-	if err != nil {
-		log.Println("❌ Extractor failed:", err)
-	}
 }

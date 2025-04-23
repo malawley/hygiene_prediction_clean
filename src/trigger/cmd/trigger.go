@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"configure"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -166,14 +167,20 @@ func handleTrigger(w http.ResponseWriter, r *http.Request) {
 func main() {
 	// Ensure log directory exists
 	_ = os.MkdirAll("logs", 0755)
-	configPath := os.Getenv("SERVICE_CONFIG_PATH")
-	if configPath == "" {
-		configPath = "/services.json"
+
+	configB64 := os.Getenv("SERVICE_CONFIG_B64")
+	if configB64 == "" {
+		log.Fatal("❌ SERVICE_CONFIG_B64 is not set")
 	}
 
-	cfg, err := configure.LoadServiceConfig(configPath)
+	decoded, err := base64.StdEncoding.DecodeString(configB64)
 	if err != nil {
-		log.Fatalf("❌ Failed to load service config: %v", err)
+		log.Fatalf("❌ Failed to decode SERVICE_CONFIG_B64: %v", err)
+	}
+
+	var cfg configure.ServiceURLs
+	if err := json.Unmarshal(decoded, &cfg); err != nil {
+		log.Fatalf("❌ Failed to parse service config: %v", err)
 	}
 
 	extractorURL = cfg.Extractor.URL
@@ -189,6 +196,46 @@ func main() {
 
 	http.HandleFunc("/run", handleRun)
 	http.HandleFunc("/clean", handleTrigger)
+	http.HandleFunc("/purge", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Only POST allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		completed = make(map[string]map[string]bool)
+		log.Println("🧹 Cleared completed event cache")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("✅ Cache cleared"))
+	})
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
+
+// func main() {
+// 	// Ensure log directory exists
+// 	_ = os.MkdirAll("logs", 0755)
+// 	configPath := os.Getenv("SERVICE_CONFIG_PATH")
+// 	if configPath == "" {
+// 		configPath = "/services.json"
+// 	}
+
+// 	cfg, err := configure.LoadServiceConfig(configPath)
+// 	if err != nil {
+// 		log.Fatalf("❌ Failed to load service config: %v", err)
+// 	}
+
+// 	extractorURL = cfg.Extractor.URL
+// 	cleanerURL = cfg.Cleaner.URL
+// 	loaderURL = cfg.Loader.URL
+// 	loaderParquetURL = cfg.LoaderParquet.URL
+
+// 	log.Printf("🚀 Trigger service running on :8080")
+// 	log.Printf("🔗 Extractor:       %s", extractorURL)
+// 	log.Printf("🔗 Cleaner:         %s", cleanerURL)
+// 	log.Printf("🔗 Loader-JSON:     %s", loaderURL)
+// 	log.Printf("🔗 Loader-Parquet:  %s", loaderParquetURL)
+
+// 	http.HandleFunc("/run", handleRun)
+// 	http.HandleFunc("/clean", handleTrigger)
+
+// 	log.Fatal(http.ListenAndServe(":8080", nil))
+// }

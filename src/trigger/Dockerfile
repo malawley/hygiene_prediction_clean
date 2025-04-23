@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y curl ca-certificates && rm -rf /var/lib
 
 # Copy and run
 COPY build/trigger /trigger
-COPY services.json /services.json
 
 EXPOSE 8080
 CMD ["/trigger"]
+
