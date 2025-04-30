@@ -4,19 +4,18 @@ from fastapi.responses import FileResponse
 from google.cloud import storage
 import tempfile
 import os
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "C:/Users/malaw/OneDrive/Documents/MSDS/MSDS434/hygiene_prediction/hygiene-key.json"
 import sys
 import traceback
 import time
 
-
-
-# === Add project root to import path ===
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
+# === Set up Google Cloud credentials (default or overridden via env) ===
+key_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "/app/hygiene-key.json")
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = key_path
 
 # ✅ Import the pipeline entry point
-from src.dashboards.ml_dashboard.risk_report_generator import pull_and_score
+from risk_report_generator import pull_and_score
 
+# === Initialize FastAPI ===
 app = FastAPI()
 
 class ReportRequest(BaseModel):
