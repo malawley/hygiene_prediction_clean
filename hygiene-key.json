@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "hygiene-prediction-434",
+  "private_key_id": "92b9ff62083d8babd261ab00c242da1caae2ae12",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDqD1C7ZSveMkhp\nY8cJpGyD2/6ah52xIRVrpY/HILPU05WgTg5W9zdkLAmGmADIFbhZS5NffpOFxOdl\noBqYAtrnK22XU7NTvHnR2tEoDstwULCCYfSJnndWRZyhuMk66KvzznpOqZpmRyYf\njmkR8dHPUiru1BojCeA+6MkjDRmhZ6wccDLW489icEXpCmAEp5G/+jT5CXqKDQqv\nqwISxJ2UD32fo2iSVfBq1f9GTzTwcUFUYyC1SRbFEf3MU1IEUEwj6CMhP5zYpOq7\nFn03lsjY86Rm6WhzV6L29lEIugpLGrniYonEkY1i3Phru6my9shTR55va8ORhhyU\nbwb48fABAgMBAAECggEAFYeFnUsj0xsscndBVGd5rNJUU8oELQoWQpHWzRH6wKma\nsoVjh8fTIkVztdvu/HiU/a+4NVk7ABu5zi0BLTjcAlYKDVifXuUwDmfSg90ChQkD\nB2czu2HmZ7rc+ro41lCXGoTEVs5+e4hxXwc2LnagHjIYbWH4qn7qz9aRQ8ZddG1c\nDMiH8YsXDc6w/AzJiDnjGlX7IShzsFAvkEc8ph0OyOp+wS8NiyepPCwaqHWpvCTH\nGHeUpZf4ViZYLxKUp4FIXLfaRPfx1ZBKNQUoDpPvdlireL8QMUjrw6LQSivYPOPa\nQsPMWGjO4xpKH/ItOGUKcl/FXTQPIquSOB9VTrWFzQKBgQD2HF7effhbkmlgKH8o\n7uqUw/nKvqL7eKOhGLx7V9/hcoj9u3b3vVNdC61dgePll1O7IMXfJWdsj7sP+1tq\nZhrpZPjNrbdvVauZIXHOo7gkhLcZQPKEUTOzQZSGDrHWqWsSt/SEnhtkrUg23roj\nl+41kePWQfUIDNqmdSG1YtEYZQKBgQDzdvtPvI5MKeW3879D6MevvRKwDwnUclul\n2fPkC+EecUmIBtWpNVu9PYgrAaHGn8TPy/IOqzxYS6tcIIourrLsSO6XVdwfIuM+\n7EHpZQozUCopxpJzB5q+29fKMRLlg8O2TNX+xXt3I3TKSfhVVxS5uOXWNsRr7QXg\ntJzfWWMJbQKBgCJ8ITLt1cIHBurpYb/7kjUcLMEi6zVvVwY4sBhcXMt7QATFosrd\n5XNxMm6ax7Mg/COJWRCGbjKBBUYdA1cqTXUMp+wx/jUEfRHs5MR+nkvHqNxKBHFT\n63mfo88Q+gxJGu65hfKbMN1vhmHh3ZUlMcSh15nrDgl9u5l9aia/XOsdAoGAAI+a\nnqFploVWMSlPnIFxzFbcLymptSKaUXSCGlloqGBMchLJ9TzZPENjB+5WCBYgJvZq\nVVxRpEZwW6L7joX6hY7ZdeHNwwiai2+R606/SkT6A+SgO8GduqjZA28/guXd0pK0\nv4SG90xOnZS0DMZJlu/1H5w6saD3LYBdCCq1jrUCgYEAot0mSsOz2EKJeoiFVppl\n5MDPqfpElYUPQ4/EjZuzXA0W058AVKxdwwvnHSpWSgpAlVrhrYesA4bx6S48lYUm\nSY0FQd/5U9SjRwQqr2ZHvqInH6yC784WuRX6NtEAa+kcw5YWpOyB1Kw6aatFveZQ\n5b9q5CGjW01eGAQ1j5EZVdo=\n-----END PRIVATE KEY-----\n",
+  "client_email": "hygiene-pipeline@hygiene-prediction-434.iam.gserviceaccount.com",
+  "client_id": "115496863001085275484",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/hygiene-pipeline%40hygiene-prediction-434.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

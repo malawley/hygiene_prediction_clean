@@ -1,0 +1,124 @@
+>fc reports\test_003_run1.csv reports\test_003_run2.csv
+# Repeatability check summary (run1 vs run2):
+test_001   repeatability_identical   ✅ IDENTICAL
+test_002   repeatability_identical   ✅ IDENTICAL
+test_003   repeatability_identical   ❌ DIFFERENT
+test_004   repeatability_identical   ✅ IDENTICAL
+test_005   repeatability_identical   ❌ DIFFERENT
+test_006   repeatability_identical   ✅ IDENTICAL
+test_007   repeatability_identical   ✅ IDENTICAL
+test_008   repeatability_identical   ✅ IDENTICAL
+
+# Validation results follow:
+
+      test_id                 check  passed
+test_001_run1          field_sanity    True
+test_001_run1 inspector_month_match    True
+test_001_run1          nonempty_csv    True
+test_001_run1             row_count    True
+test_001_run1            sort_order    True
+test_001_run1            uniqueness    True
+test_001_run2          field_sanity    True
+test_001_run2 inspector_month_match    True
+test_001_run2          nonempty_csv    True
+test_001_run2             row_count    True
+test_001_run2            sort_order    True
+test_001_run2            uniqueness    True
+
+      test_id                 check  passed
+test_002_run1          field_sanity    True
+test_002_run1 inspector_month_match    True
+test_002_run1          nonempty_csv    True
+test_002_run1             row_count    True
+test_002_run1            sort_order    True
+test_002_run1            uniqueness    True
+test_002_run2          field_sanity    True
+test_002_run2 inspector_month_match    True
+test_002_run2          nonempty_csv    True
+test_002_run2             row_count    True
+test_002_run2            sort_order    True
+test_002_run2            uniqueness    True
+
+      test_id                 check  passed
+test_003_run1          field_sanity    True
+test_003_run1 inspector_month_match    True
+test_003_run1          nonempty_csv    True
+test_003_run1             row_count    True
+test_003_run1            sort_order    True
+test_003_run1            uniqueness    True
+test_003_run2          field_sanity    True
+test_003_run2 inspector_month_match    True
+test_003_run2          nonempty_csv    True
+test_003_run2             row_count    True
+test_003_run2            sort_order    True
+test_003_run2            uniqueness    True
+
+      test_id                 check  passed
+test_004_run1          field_sanity    True
+test_004_run1 inspector_month_match    True
+test_004_run1          nonempty_csv    True
+test_004_run1             row_count    True
+test_004_run1            sort_order    True
+test_004_run1            uniqueness    True
+test_004_run2          field_sanity    True
+test_004_run2 inspector_month_match    True
+test_004_run2          nonempty_csv    True
+test_004_run2             row_count    True
+test_004_run2            sort_order    True
+test_004_run2            uniqueness    True
+
+      test_id                 check  passed
+test_005_run1          field_sanity    True
+test_005_run1 inspector_month_match    True
+test_005_run1          nonempty_csv    True
+test_005_run1             row_count    True
+test_005_run1            sort_order    True
+test_005_run1            uniqueness    True
+test_005_run2          field_sanity    True
+test_005_run2 inspector_month_match    True
+test_005_run2          nonempty_csv    True
+test_005_run2             row_count    True
+test_005_run2            sort_order    True
+test_005_run2            uniqueness    True
+
+      test_id                 check  passed
+test_006_run1          field_sanity    True
+test_006_run1 inspector_month_match    True
+test_006_run1          nonempty_csv    True
+test_006_run1             row_count    True
+test_006_run1            sort_order    True
+test_006_run1            uniqueness    True
+test_006_run2          field_sanity    True
+test_006_run2 inspector_month_match    True
+test_006_run2          nonempty_csv    True
+test_006_run2             row_count    True
+test_006_run2            sort_order    True
+test_006_run2            uniqueness    True
+
+      test_id                 check  passed
+test_007_run1          field_sanity    True
+test_007_run1 inspector_month_match    True
+test_007_run1          nonempty_csv    True
+test_007_run1             row_count    True
+test_007_run1            sort_order    True
+test_007_run1            uniqueness    True
+test_007_run2          field_sanity    True
+test_007_run2 inspector_month_match    True
+test_007_run2          nonempty_csv    True
+test_007_run2             row_count    True
+test_007_run2            sort_order    True
+test_007_run2            uniqueness    True
+
+      test_id                 check  passed
+test_008_run1          field_sanity    True
+test_008_run1 inspector_month_match    True
+test_008_run1          nonempty_csv    True
+test_008_run1             row_count    True
+test_008_run1            sort_order    True
+test_008_run1            uniqueness    True
+test_008_run2          field_sanity    True
+test_008_run2 inspector_month_match    True
+test_008_run2          nonempty_csv    True
+test_008_run2             row_count    True
+test_008_run2            sort_order    True
+test_008_run2            uniqueness    True

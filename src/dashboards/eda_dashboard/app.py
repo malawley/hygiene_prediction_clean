@@ -39,7 +39,7 @@ if page == "Top Violations Overview":
                 description,
                 violation_count,
                 CONCAT(CAST(code AS STRING), ' - ', description) AS code_description
-                FROM `hygiene-prediction.HygienePredictionRow.violation_code_count_description`
+                FROM `hygiene-prediction-434.HygienePredictionRow.violation_code_count_description`
                 ORDER BY violation_count DESC
                 LIMIT 20
         """
@@ -74,7 +74,7 @@ elif page == "Violation by Facility Category":
             violation_count, 
             description,
             CONCAT(CAST(code AS STRING), ' - ', description) AS code_description
-        FROM `hygiene-prediction.HygienePredictionRow.violation_facility_labeled`
+        FROM `hygiene-prediction-434.HygienePredictionRow.violation_facility_labeled`
     """
 
     @st.cache_data
@@ -138,7 +138,7 @@ elif page == "Violation Co-occurrence Heatmap":
 
     CO_OCCURRENCE_HEATMAP_QUERY = """
         SELECT code_a_label, code_b_label, co_occurrence_count
-        FROM `hygiene-prediction.HygienePredictionRow.violation_cooccurrence_labeled_top10`
+        FROM `hygiene-prediction-434.HygienePredictionRow.violation_cooccurrence_labeled_top10`
     """
 
     @st.cache_data
@@ -218,8 +218,8 @@ elif page == "Violations by Zip Code":
             s.description,
             CONCAT(CAST(v.code AS STRING), ' - ', s.description) AS code_description,
             SUM(v.violation_count) AS total_violations
-        FROM `hygiene-prediction.HygienePredictionRow.violation_by_zip` v
-        LEFT JOIN `hygiene-prediction.HygienePredictionRow.violation_code_sheet` s
+        FROM `hygiene-prediction-434.HygienePredictionRow.violation_by_zip` v
+        LEFT JOIN `hygiene-prediction-434.HygienePredictionRow.violation_code_sheet` s
         ON v.code = s.code
         GROUP BY v.zip, v.code, s.description
     """
@@ -229,7 +229,7 @@ elif page == "Violations by Zip Code":
         SELECT 
             zip,
             COUNT(DISTINCT dba_name) AS num_facilities
-        FROM `hygiene-prediction.HygienePredictionRow.CleanedInspectionRow`
+        FROM `hygiene-prediction-434.HygienePredictionRow.CleanedInspectionRow`
         GROUP BY zip
     """
 
@@ -346,7 +346,7 @@ elif page == "Violation Trends Over Time":
             description,
             violation_count,
             code_description
-        FROM `hygiene-prediction.HygienePredictionRow.violation_trends_by_month_labeled`
+        FROM `hygiene-prediction-434.HygienePredictionRow.violation_trends_by_month_labeled`
     """
 
     @st.cache_data
@@ -417,8 +417,8 @@ elif page == "Facility Map by Violation":
             s.description,
             CONCAT(CAST(f.code AS STRING), ' - ', IFNULL(s.description, 'Unknown')) AS code_description,
             f.violation_count
-        FROM `hygiene-prediction.HygienePredictionRow.violation_by_facility_map` f
-        LEFT JOIN `hygiene-prediction.HygienePredictionRow.violation_code_sheet` s
+        FROM `hygiene-prediction-434.HygienePredictionRow.violation_by_facility_map` f
+        LEFT JOIN `hygiene-prediction-434.HygienePredictionRow.violation_code_sheet` s
         ON f.code = s.code
         WHERE f.latitude IS NOT NULL AND f.longitude IS NOT NULL
     """

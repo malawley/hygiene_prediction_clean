@@ -1,0 +1,16 @@
+dba_name,address,zip,place_id,predicted_failure_probability,risk_zone,scoring_status
+three happiness restaurant,209 W Cermak Rd,60616,ChIJUyvwyGMsDogRNY75VYWxRPw,0.95,high,Scored
+taco sur birreria,3059 S Pulaski Rd,60623,ChIJG8AA8_IzDogR3Xk0Vb5iHYE,0.88,high,Scored
+"chan's king wok, inc.",2323 W Madison St,60612,ChIJnZAXnUMtDogRA5MzcijWw2A,0.88,high,Scored
+viet nam restaurant,1032 W Argyle St,60640,ChIJid4OENXTD4gRhqgIpnSGnY4,0.87,high,Scored
+central gyros corp,3127 N Central Ave,60634,ChIJ1eUUAojMD4gRtxwibG4nUSg,0.87,high,Scored
+deep purpl,1137 W Sheridan Rd,60660,ChIJs6ZP2-vRD4gRKCLi-TlxIak,0.87,high,Scored
+baba's famous steaks & lemondade,7500 S Cottage Grove Ave,60619,ChIJxUlCYlIpDogR_kD2Y5lzX5E,0.86,high,Scored
+wendys old fashioned hamburgers,758 W 117th St,60628,ChIJ5bN5y0YkDogRsLOqK27ffME,0.85,high,Scored
+han 202,605 W 31st St,60616,ChIJEeM05EAsDogRNfAVOvYxQz0,0.84,high,Scored
+bacino's of lincoln park ltd,2204 N Lincoln Ave,60614,ChIJm93Wl23TD4gRrSWlWSTrwNw,0.82,high,Scored
+eggy's and goddess and the baker,165 W Superior St,60654,ChIJGVZLcITTD4gRp6ecKh8qurk,0.79,high,Scored
+antepli turkish gourmet,4849 N Kedzie Ave,60625,ChIJhy-Abf_ND4gRNy5L6Oq0G_Y,0.76,high,Scored
+see thru chinese kitchen,7118 S Western Ave,60636,ChIJuQFwJcQvDogRRXQpvUWejDA,0.74,medium,Scored
+ambar chicago,700 N Clark St,60654,ChIJ_WkBLrMsDogR0cFQJVbq0Kc,0.7,medium,Scored
+dulce mami cafe chicago llc,2559 W 51st St,60632,ChIJ423WC5kvDogRdotZo4QGAo0,0.7,medium,Scored

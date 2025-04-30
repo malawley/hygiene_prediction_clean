@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -39,7 +38,7 @@ func (s *GCSStorage) EnsureBucketExists(bucketName string) error {
 	_, err := s.Client.Bucket(bucketName).Attrs(s.Ctx)
 	if err == storage.ErrBucketNotExist {
 		log.Printf("Bucket %s does not exist. Creating...", bucketName)
-		return s.Client.Bucket(bucketName).Create(s.Ctx, "hygiene-prediction", &storage.BucketAttrs{
+		return s.Client.Bucket(bucketName).Create(s.Ctx, "hygiene-prediction-434", &storage.BucketAttrs{
 			Location: "US",
 		})
 	}
@@ -296,12 +295,6 @@ func main() {
 
 	_ = godotenv.Load()
 
-	triggerURL = os.Getenv("TRIGGER_URL")
-	if triggerURL == "" {
-		log.Fatal("❌ TRIGGER_URL environment variable not set")
-	}
-	log.Printf("🔗 Trigger service URL: %s\n", triggerURL)
-
 	// ✅ Read trigger URL from environment
 	triggerURL = os.Getenv("TRIGGER_URL")
 	if triggerURL == "" {
@@ -320,24 +313,19 @@ func main() {
 	}
 	defer logFile.Close()
 
-	// HTTP Mode
+	// 🚀 Always start HTTP server (fully cloud-native)
+	log.Println("🚀 Starting Extractor in HTTP mode on :8080")
 
-	if strings.ToLower(strings.TrimSpace(os.Getenv("HTTP_MODE"))) == "true" {
-		log.Println("🚀 Starting Extractor in HTTP mode on :8080")
+	http.HandleFunc("/extract", func(w http.ResponseWriter, r *http.Request) {
+		handleExtract(w, r, triggerURL)
+	})
 
-		http.HandleFunc("/extract", func(w http.ResponseWriter, r *http.Request) {
-			handleExtract(w, r, triggerURL)
-		})
+	http.HandleFunc("/shutdown", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("🛑 Shutdown requested — will exit after current fetch.")
+		shutdownRequested = true
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Shutdown initiated."))
+	})
 
-		http.HandleFunc("/shutdown", func(w http.ResponseWriter, r *http.Request) {
-			log.Println("🛑 Shutdown requested — will exit after current fetch.")
-			shutdownRequested = true
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("Shutdown initiated."))
-		})
-
-		log.Fatal(http.ListenAndServe(":8080", nil))
-		return
-	}
-
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }

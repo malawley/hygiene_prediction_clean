@@ -1,0 +1,507 @@
+import streamlit as st
+import pandas as pd
+from google.cloud import bigquery
+import plotly.express as px
+import json
+import os
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+
+
+st.set_page_config(page_title="Chicago Food Violations Dashboard", layout="wide")
+
+# --- BigQuery Client ---
+@st.cache_resource
+def get_bq_client():
+    return bigquery.Client()
+
+# --- Page Navigation ---
+pages = [
+    "Top Violations Overview",
+    "Violation by Facility Category",
+    "Violation Co-occurrence Heatmap",
+    "Violations by Zip Code",
+    "Violation Trends Over Time",
+    "Facility Map by Violation",  
+]
+
+page = st.sidebar.selectbox("Select a Page", pages)
+
+
+# --- Page 1: Top Violations Overview ---
+if page == "Top Violations Overview":
+    @st.cache_data
+    def load_top_violations():
+        query = """
+            SELECT 
+                code,
+                description,
+                violation_count,
+                CONCAT(CAST(code AS STRING), ' - ', description) AS code_description
+                FROM `hygiene-prediction.HygienePredictionRow.violation_code_count_description`
+                ORDER BY violation_count DESC
+                LIMIT 20
+        """
+        return get_bq_client().query(query).to_dataframe()
+
+    st.title("Top Food Code Violations in Chicago")
+    df = load_top_violations()
+
+    st.subheader("Most Frequently Cited Violation Codes")
+    fig = px.bar(
+        df.sort_values("violation_count", ascending=True),
+        x="violation_count",
+        y="code_description",  # 👈 updated
+        orientation="h",
+        labels={"violation_count": "Count", "code_description": "Violation"},
+        height=600
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    # st.subheader("Violation Code Reference")
+    # st.dataframe(df, use_container_width=True)
+
+
+
+# --- Page 2: Violation by Facility Category ---
+elif page == "Violation by Facility Category":
+
+    VIOLATION_BY_FACILITY_QUERY = """
+        SELECT 
+            code, 
+            facility_category, 
+            violation_count, 
+            description,
+            CONCAT(CAST(code AS STRING), ' - ', description) AS code_description
+        FROM `hygiene-prediction.HygienePredictionRow.violation_facility_labeled`
+    """
+
+    @st.cache_data
+    def load_violation_facility_data():
+        return get_bq_client().query(VIOLATION_BY_FACILITY_QUERY).to_dataframe()
+
+    st.title("Violation Frequency by Facility Category")
+    df2 = load_violation_facility_data()
+
+    # Build dropdown options including "All violations"
+    label_map = df2[["code", "code_description"]].drop_duplicates().sort_values("code_description")
+    label_dict = dict(zip(label_map["code_description"], label_map["code"]))
+    label_dict = {"All violations": None} | label_dict  # Add All violations option
+    selected_label = st.selectbox("Select a Violation", label_dict.keys())
+    selected_code = label_dict[selected_label]
+
+    # Filter dataset
+    if selected_code is None:
+        # Aggregate all codes by facility category
+        filtered_df = (
+            df2.groupby("facility_category", as_index=False)
+               .agg({"violation_count": "sum"})
+        )
+    else:
+        filtered_df = df2[df2["code"] == selected_code]
+
+    # Chart
+    st.subheader(f"Violation by Facility Category for: {selected_label}")
+    fig2 = px.bar(
+        filtered_df.sort_values("violation_count", ascending=True),
+        x="violation_count",
+        y="facility_category",
+        orientation="h",
+        labels={"violation_count": "Count", "facility_category": "Facility Type"},
+        height=600
+    )
+    st.plotly_chart(fig2, use_container_width=True)
+
+    # Optional: Summary text
+    if not filtered_df.empty:
+        top_row = filtered_df.loc[filtered_df["violation_count"].idxmax()]
+        st.markdown(
+            f"**Most common in:** {top_row['facility_category']} "
+            f"({int(top_row['violation_count']):,} occurrences)"
+        )
+
+
+# --- Page 3: Violation Co-occurrence Heatmap ---
+
+elif page == "Violation Co-occurrence Heatmap":
+
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    import numpy as np
+
+    st.markdown("""
+        This heatmap shows how frequently the **Top 10 most common violations** occur **together** in the same inspection.  
+        Darker shades indicate stronger co-occurrence. This version shows only the **lower triangular half** of the matrix 
+        to reduce duplication.
+    """)
+
+    CO_OCCURRENCE_HEATMAP_QUERY = """
+        SELECT code_a_label, code_b_label, co_occurrence_count
+        FROM `hygiene-prediction.HygienePredictionRow.violation_cooccurrence_labeled_top10`
+    """
+
+    @st.cache_data
+    def load_heatmap_data():
+        return get_bq_client().query(CO_OCCURRENCE_HEATMAP_QUERY).to_dataframe()
+
+    st.title("Violation Co-occurrence Heatmap")
+
+    # Load and pivot the data
+    heatmap_df = load_heatmap_data()
+    pivot_df = heatmap_df.pivot(index="code_a_label", columns="code_b_label", values="co_occurrence_count").fillna(0)
+
+    # Ensure symmetric matrix and consistent ordering
+    all_labels = sorted(map(str, set(pivot_df.columns).union(set(pivot_df.index))))
+    pivot_df = pivot_df.reindex(index=all_labels, columns=all_labels, fill_value=0)
+    symmetric_df = (pivot_df + pivot_df.T) / 2
+    symmetric_df = symmetric_df.astype(float)
+
+    # Create mask for upper triangle
+    mask = np.triu(np.ones_like(symmetric_df, dtype=bool))
+
+    # Set dark theme overrides
+    sns.set_theme(style="dark")
+    fig, ax = plt.subplots(figsize=(9, 7), facecolor="#0e1117")
+    ax.set_facecolor("#0e1117")
+    fig.patch.set_facecolor("#0e1117")
+
+    # Draw heatmap
+    sns.heatmap(
+        symmetric_df,
+        mask=mask,
+        annot=True,
+        fmt=".0f",
+        cmap="Oranges",
+        linewidths=0.5,
+        cbar_kws={"label": "Co-occurrence Count"},
+        ax=ax
+    )
+
+    # Styling for dark theme
+    plt.title("Top 10 Violation Co-occurrence (Lower Triangular)", fontsize=13, color="white")
+    ax.tick_params(colors='white')
+    ax.xaxis.label.set_color('white')
+    ax.yaxis.label.set_color('white')
+    ax.title.set_color('white')
+
+    plt.xticks(rotation=45, ha="right", fontsize=9)
+    plt.yticks(rotation=0, fontsize=9)
+    
+    ax.set_ylabel("")  # Remove y-axis label
+    ax.set_xlabel("")  # Optional: remove x-axis label if it appears
+
+
+    st.pyplot(fig)
+
+
+
+
+# --- Page 4: Choropleth of Violations by Zipcode ---
+# --- Page 4: Choropleth of Violations by Zip Code (Refined) ---
+elif page == "Violations by Zip Code":
+    import plotly.graph_objects as go
+    import json
+    import os
+
+    st.title("Violation Density by Zip Code")
+    st.markdown("""
+        This map highlights how health code violations are distributed across Chicago ZIP codes.  
+        Use the dropdown to explore specific violations, or view all violations combined.
+    """)
+
+    # --- Load violation data ---
+    ZIP_VIOLATIONS_QUERY = """
+        SELECT 
+            v.zip,
+            v.code,
+            s.description,
+            CONCAT(CAST(v.code AS STRING), ' - ', s.description) AS code_description,
+            SUM(v.violation_count) AS total_violations
+        FROM `hygiene-prediction.HygienePredictionRow.violation_by_zip` v
+        LEFT JOIN `hygiene-prediction.HygienePredictionRow.violation_code_sheet` s
+        ON v.code = s.code
+        GROUP BY v.zip, v.code, s.description
+    """
+
+    # --- Load facility counts per ZIP from CleanedInspectionRow ---
+    ZIP_FACILITY_QUERY = """
+        SELECT 
+            zip,
+            COUNT(DISTINCT dba_name) AS num_facilities
+        FROM `hygiene-prediction.HygienePredictionRow.CleanedInspectionRow`
+        GROUP BY zip
+    """
+
+
+    @st.cache_data
+    def load_zip_data():
+        return get_bq_client().query(ZIP_VIOLATIONS_QUERY).to_dataframe()
+
+    @st.cache_data
+    def load_facility_counts():
+        return get_bq_client().query(ZIP_FACILITY_QUERY).to_dataframe()
+
+    df_zip = load_zip_data()
+    df_facilities = load_facility_counts()
+
+    # --- Build dropdown options ---
+    label_map = df_zip[["code", "code_description"]].drop_duplicates().sort_values("code_description")
+    label_dict = {"All Violations": None}
+    label_dict.update(dict(zip(label_map["code_description"], label_map["code"])))
+
+    selected_label = st.selectbox("Select a Violation Code", list(label_dict.keys()))
+    selected_code = label_dict[selected_label]
+
+    # --- Filter and format data ---
+    if selected_code is None:
+        filtered_df = df_zip.groupby("zip", as_index=False)["total_violations"].sum()
+    else:
+        filtered_df = df_zip[df_zip["code"] == selected_code].copy()
+
+    # Format ZIPs for consistency
+    filtered_df["zip"] = filtered_df["zip"].astype(str).str.zfill(5)
+    df_facilities["zip"] = df_facilities["zip"].astype(str).str.zfill(5)
+
+    # --- Merge in facility counts ---
+    filtered_df = filtered_df.merge(df_facilities, on="zip", how="left")
+    filtered_df["violations_per_facility"] = (
+        filtered_df["total_violations"] / filtered_df["num_facilities"]
+    ).round(2)
+
+    # --- Load GeoJSON for Chicago ZIPs ---
+    geojson_path = os.path.join("data", "chicago_zips.geojson")
+    with open(geojson_path, "r") as file:
+        geojson_data = json.load(file)
+
+    # --- Attach data to ZIP GeoJSON features ---
+    zip_data = filtered_df.set_index("zip").to_dict("index")
+
+    for feature in geojson_data["features"]:
+        zip_code = feature["properties"]["zip"]
+        props = zip_data.get(zip_code, {})
+        feature["properties"]["violations"] = props.get("total_violations", 0)
+        feature["properties"]["num_facilities"] = props.get("num_facilities", 0)
+        feature["properties"]["violations_per_facility"] = props.get("violations_per_facility", 0.0)
+
+    # --- Build choropleth map ---
+    fig = go.Figure(go.Choroplethmapbox(
+        geojson=geojson_data,
+        locations=[f["properties"]["zip"] for f in geojson_data["features"]],
+        z=[f["properties"]["violations"] for f in geojson_data["features"]],
+        colorscale="OrRd",
+        colorbar_title="Violations",
+        marker_line_width=1.5,
+        marker_opacity=0.7,
+        featureidkey="properties.zip",
+        zmin=0,
+        customdata=[
+            [
+                f["properties"]["zip"],
+                f["properties"]["violations"],
+                f["properties"]["num_facilities"],
+                f["properties"]["violations_per_facility"]
+            ]
+            for f in geojson_data["features"]
+        ],
+        hovertemplate=(
+            "ZIP: %{customdata[0]}<br>" +
+            "Violations: %{customdata[1]}<br>" +
+            "Facilities: %{customdata[2]}<br>" +
+            "Violations per Facility: %{customdata[3]:.2f}<extra></extra>"
+        )
+    ))
+
+    fig.update_layout(
+        mapbox_style="open-street-map",
+        mapbox_zoom=8.5,
+        mapbox_center={"lat": 41.8781, "lon": -87.6298},
+        margin={"r": 0, "t": 0, "l": 0, "b": 0},
+        height=600
+    )
+
+    # --- Dynamic section title ---
+    if selected_code is None:
+        st.subheader("Total Violation Count by ZIP Code")
+    else:
+        st.subheader(f"Violation Count by ZIP Code for Code {selected_code}")
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    # --- Top ZIP Code Table ---
+    top_zip_df = filtered_df.sort_values("total_violations", ascending=False).head(5)
+    st.markdown("### Top 5 ZIP Codes by Violation Count")
+    st.dataframe(top_zip_df.reset_index(drop=True), use_container_width=True)
+
+   
+    
+ # --- Page 5: Violation Trends Over Time ---
+# --- Page 5: Violation Trends Over Time ---
+elif page == "Violation Trends Over Time":
+
+    VIOLATION_TRENDS_QUERY = """
+        SELECT 
+            month,
+            code,
+            description,
+            violation_count,
+            code_description
+        FROM `hygiene-prediction.HygienePredictionRow.violation_trends_by_month_labeled`
+    """
+
+    @st.cache_data
+    def load_violation_trends():
+        return get_bq_client().query(VIOLATION_TRENDS_QUERY).to_dataframe()
+
+    df_trends = load_violation_trends()
+    df_trends["month"] = pd.to_datetime(df_trends["month"])
+    df_trends = df_trends.sort_values("month")
+
+
+    st.title("Violation Trends Over Time")
+
+    # Build label dictionary for dropdown (code + description)
+    label_map = df_trends[["code", "code_description"]].drop_duplicates().sort_values("code_description")
+    label_dict = dict(zip(label_map["code_description"], label_map["code"]))
+    label_dict = {"All violations": None} | label_dict  # Add 'All violations' to the top
+
+    selected_label = st.selectbox("Select a Violation Code", list(label_dict.keys()))
+    selected_code = label_dict[selected_label]
+
+    # Filter data
+    if selected_code is None:
+        filtered_df = (
+            df_trends.groupby("month", as_index=False)
+                     .agg({"violation_count": "sum"})
+        )
+        chart_title = "Trend for All Violations"
+    else:
+        filtered_df = df_trends[df_trends["code"] == selected_code]
+        chart_title = f"Trend for {selected_label}"
+
+    # Plot
+    fig = px.line(
+        filtered_df,
+        x="month",
+        y="violation_count",
+        labels={"violation_count": "Count", "month": "Month"},
+        title=chart_title,
+        markers=True
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+
+# --- Page 6: Facility Map by Violation ---
+# --- Page 6: Facility Map by Violation ---
+
+elif page == "Facility Map by Violation":
+    import plotly.express as px
+    import pandas as pd
+    import json
+
+    st.title("Facility Violation Map")
+    st.markdown("""
+        This map shows where individual food establishments are located, and how many times each has been cited for violations.
+        You can select a specific violation code or view all violations, and choose how many top facilities to display.
+    """)
+
+    # --- Load BigQuery facility-level data ---
+    FACILITY_MAP_QUERY = """
+        SELECT 
+            f.dba_name,
+            f.address,
+            f.latitude,
+            f.longitude,
+            f.code,
+            s.description,
+            CONCAT(CAST(f.code AS STRING), ' - ', IFNULL(s.description, 'Unknown')) AS code_description,
+            f.violation_count
+        FROM `hygiene-prediction.HygienePredictionRow.violation_by_facility_map` f
+        LEFT JOIN `hygiene-prediction.HygienePredictionRow.violation_code_sheet` s
+        ON f.code = s.code
+        WHERE f.latitude IS NOT NULL AND f.longitude IS NOT NULL
+    """
+
+    @st.cache_data
+    def load_facility_map_data():
+        try:
+            return get_bq_client().query(FACILITY_MAP_QUERY).to_dataframe()
+        except Exception as e:
+            st.error("❌ BigQuery error:")
+            st.exception(e)
+            return pd.DataFrame()  # Return empty frame to avoid app crash
+
+    df = load_facility_map_data()
+    # st.write("🚨 Available columns:", df.columns.tolist())
+
+    if df.empty:
+        st.warning("No data found for the facility map.")
+        st.stop()
+
+    # --- Build dropdown options including 'All violations' ---
+    label_map = df[["code", "code_description"]].drop_duplicates().sort_values("code_description")
+    label_dict = dict(zip(label_map["code_description"], label_map["code"]))
+    label_dict = {"All violations": None} | label_dict  # Add 'All violations' to the beginning
+    selected_label = st.selectbox("Select a Violation Code", list(label_dict.keys()))
+    selected_code = label_dict[selected_label]
+
+    # --- Let user choose number of facilities to show ---
+    top_n_value = st.selectbox(
+        "How many top facilities to display?",
+        options=[10, 20, 40],
+        index=2  # default to 40
+    )
+
+    # --- Filter for top N facilities ---
+    if selected_code is not None:
+        filtered = df[df["code"] == selected_code].copy()
+    else:
+        # Group across all codes and sum violations per facility
+        filtered = (
+            df.groupby(["dba_name", "address", "latitude", "longitude"], as_index=False)
+              .agg({"violation_count": "sum"})
+        )
+
+    top_n = filtered.sort_values("violation_count", ascending=False).head(top_n_value)
+
+    # --- Create scatter map ---
+    fig = px.scatter_mapbox(
+        top_n,
+        lat="latitude",
+        lon="longitude",
+        size="violation_count",
+        size_max=20,
+        color="violation_count",
+        color_continuous_scale="Cividis",
+        hover_name="dba_name",
+        hover_data={
+            "address": True,
+            "violation_count": True,
+            "latitude": False,
+            "longitude": False
+        },
+        zoom=10,
+        height=600
+    )
+
+    fig.update_layout(
+        mapbox_style="open-street-map",
+        mapbox_center={"lat": 41.8781, "lon": -87.6298},
+        margin={"r": 0, "t": 0, "l": 0, "b": 0}
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    # --- Show ranked table underneath ---
+    st.markdown("### Top Facilities for Selected Violation")
+    if selected_code is not None:
+        st.dataframe(
+            top_n[["dba_name", "address", "violation_count"]].reset_index(drop=True),
+            use_container_width=True
+        )
+    else:
+        st.dataframe(
+            top_n[["dba_name", "address", "violation_count"]].reset_index(drop=True),
+            use_container_width=True
+        )

@@ -43,13 +43,13 @@ docker tag local_image_name us-central1-docker.pkg.dev/PROJECT_ID/REPOSITORY_NAM
 
 Example:
 ```bash
-docker tag hygiene_prediction-trigger us-central1-docker.pkg.dev/hygiene-prediction/containers/trigger
+docker tag hygiene_prediction-trigger us-central1-docker.pkg.dev/hygiene-prediction-434/containers/trigger
 ```
 
 ### **5. Push Images to Artifact Registry**
 
 ```bash
-docker push us-central1-docker.pkg.dev/hygiene-prediction/containers/trigger
+docker push us-central1-docker.pkg.dev/hygiene-prediction-434/containers/trigger
 ```
 
 - Repeat for all images.
@@ -68,7 +68,7 @@ gcloud run deploy SERVICE_NAME \
 Example:
 ```bash
 gcloud run deploy trigger \
-  --image=us-central1-docker.pkg.dev/hygiene-prediction/containers/trigger \
+  --image=us-central1-docker.pkg.dev/hygiene-prediction-434/containers/trigger \
   --allow-unauthenticated
 ```
 
@@ -94,7 +94,7 @@ Cloud Run assigns each service its own **HTTPS URL**. These URLs must be shared 
 
 - Grant services the correct access:
 ```bash
-gcloud projects add-iam-policy-binding hygiene-prediction \
+gcloud projects add-iam-policy-binding hygiene-prediction-434 \
   --member="user:YOUR_EMAIL" \
   --role="roles/artifactregistry.writer"
 ```

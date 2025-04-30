@@ -1,5 +1,5 @@
 @echo off
-set PROJECT_ID=hygiene-prediction
+set PROJECT_ID=hygiene-prediction-434
 set SERVICE_NAME=extractor
 set IMAGE_NAME=gcr.io/%PROJECT_ID%/%SERVICE_NAME%
 
@@ -15,4 +15,4 @@ gcloud run deploy %SERVICE_NAME% ^
   --platform=managed ^
   --region=us-central1 ^
   --allow-unauthenticated ^
-  --set-env-vars=HTTP_MODE=true,CLOUD_RUN_ENV=true,BUCKET_NAME=raw-inspection-data,CLEANER_URL=https://cleaner-service-url/clean
+  --set-env-vars=HTTP_MODE=true,CLOUD_RUN_ENV=true,BUCKET_NAME=raw-inspection-data-434,CLEANER_URL=https://cleaner-service-url/clean

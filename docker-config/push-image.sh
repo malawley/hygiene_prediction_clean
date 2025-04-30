@@ -4,7 +4,7 @@
 # Tag and push a local Docker image to Google Artifact Registry
 
 # --- Configuration ---
-PROJECT_ID="hygiene-prediction"
+PROJECT_ID="hygiene-prediction-434"
 REGION="us-central1"
 REPO="containers"
 

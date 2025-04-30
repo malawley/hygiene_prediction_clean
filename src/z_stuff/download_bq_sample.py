@@ -6,7 +6,7 @@ def run_query_and_save_csv():
 
     query = """
     SELECT *
-    FROM `hygiene-prediction.HygienePredictionRow.CleanedInspectionRow`
+    FROM `hygiene-prediction-434.HygienePredictionRow.CleanedInspectionRow`
     WHERE inspection_date > '2025-03-01'
     LIMIT 2
     """

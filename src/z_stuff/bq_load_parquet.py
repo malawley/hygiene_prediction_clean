@@ -11,9 +11,9 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 # === Constants ===
-BUCKET_NAME = "cleaned-inspection-data-column"
+BUCKET_NAME = "cleaned-inspection-data-column-434"
 GCS_PREFIX = "clean-data"
-BQ_PROJECT = "hygiene-prediction"
+BQ_PROJECT = "hygiene-prediction-434"
 BQ_DATASET = "HygienePredictionColumn"
 BQ_TABLE = "CleanedInspectionColumn"
 

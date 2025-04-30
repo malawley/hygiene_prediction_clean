@@ -1,0 +1,31 @@
+dba_name,address,zip,place_id,predicted_failure_probability,risk_zone,scoring_status
+three happiness restaurant,209 W Cermak Rd,60616,ChIJUyvwyGMsDogRNY75VYWxRPw,0.95,high,Scored
+taco sur birreria,3059 S Pulaski Rd,60623,ChIJG8AA8_IzDogR3Xk0Vb5iHYE,0.88,high,Scored
+"chan's king wok, inc.",2323 W Madison St,60612,ChIJnZAXnUMtDogRA5MzcijWw2A,0.88,high,Scored
+deep purpl,1137 W Sheridan Rd,60660,ChIJs6ZP2-vRD4gRKCLi-TlxIak,0.87,high,Scored
+baba's famous steaks & lemondade,7500 S Cottage Grove Ave,60619,ChIJxUlCYlIpDogR_kD2Y5lzX5E,0.86,high,Scored
+wendys old fashioned hamburgers,758 W 117th St,60628,ChIJ5bN5y0YkDogRsLOqK27ffME,0.85,high,Scored
+bacino's of lincoln park ltd,2204 N Lincoln Ave,60614,ChIJm93Wl23TD4gRrSWlWSTrwNw,0.82,high,Scored
+eggy's and goddess and the baker,165 W Superior St,60654,ChIJGVZLcITTD4gRp6ecKh8qurk,0.79,high,Scored
+antepli turkish gourmet,4849 N Kedzie Ave,60625,ChIJhy-Abf_ND4gRNy5L6Oq0G_Y,0.76,high,Scored
+see thru chinese kitchen,7118 S Western Ave,60636,ChIJuQFwJcQvDogRRXQpvUWejDA,0.74,medium,Scored
+dulce mami cafe chicago llc,2559 W 51st St,60632,ChIJ423WC5kvDogRdotZo4QGAo0,0.7,medium,Scored
+the breakfast club inc,1381 W Hubbard St,60642,ChIJ993OQCktDogRkWAiDhfOC8M,0.65,medium,Scored
+the kerryman,661 N Clark St,60654,ChIJwTDt37IsDogRYpIdlFhcKqE,0.64,medium,Scored
+gordo's tamales,2811 W 55th St,60632,ChIJCXZlPSEuDogRxXnkdKRraG4,0.63,medium,Scored
+"taqueria la hacienda, inc.",3452 W 59th St,60629,ChIJTeW6Dc8xDogRsnsPpEMuYNQ,0.63,medium,Scored
+chipotle mexican grill #2409,5330 S Pulaski Rd,60632,ChIJwYy-p70xDogRcO84maDfQpQ,0.59,medium,Scored
+wingstop,4831 N Milwaukee Ave,60630,ChIJY8YXN6jND4gRAR29SIcYFiE,0.56,medium,Scored
+idof fresh mediterranean,555 W Monroe St,60661,ChIJD0qeLsEsDogR70CGr7oIhDw,0.52,medium,Scored
+taco maya,823 S State St,60605,ChIJ_SVY6pksDogR2r6ff6s1J4o,0.5,low,Scored
+federales logan square,2471 N Milwaukee Ave,60647,ChIJqaFv3AfND4gRQ-HoXKy_yfA,0.45,low,Scored
+q sushi bar & omakase,4845 N Damen Ave,60625,ChIJBf8V1wbTD4gRXJW9p_2aMBI,0.36,low,Scored
+chipotle mexican grill #2923,41 W 87th St,60620,ChIJjQ4Wh_glDogRTmw3tGgor9U,0.36,low,Scored
+the hurley tap,1645 W Cortland St,60622,ChIJMxZoFxXTD4gRph6FRLVBub8,0.32,low,Scored
+splyt n half kitchen,5815 W Madison St,60644,ChIJUaSHpwvND4gRQXzuFap5EvY,0.1,low,Scored
+mcdonald's restaurant,4550 N Cumberland Ave,60656,ChIJ04ZywxXKD4gR36iPPVcT9cg,0.08,low,Scored
+yours truly oyster bar,613 N Wells St Suite A,60654,ChIJlxLFz4ctDogRLi150LQunyQ,,Not Enough History to Score,Not enough history
+damaojia,1217 W Fullerton Ave,60614,ChIJo5ZtlILTD4gRFSpac-3I5yI,,Not Enough History to Score,Not enough history
+gorilla sushi,4652 N Western Ave,60625,ChIJnUEwx9DTD4gRdaSZ09NgtJQ,,Not Enough History to Score,Not enough history
+fare,Northwestern Hospital,60611,ChIJ63ymLQ0tDogRb4mKS9Ys0Wc,,Not Enough History to Score,Not enough history
+j & j fish & chicken,5500 W Chicago Ave,60651,ChIJpUGCU0wzDogRQ52xxaCbjOY,,Not Enough History to Score,Not enough history

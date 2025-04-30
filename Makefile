@@ -96,9 +96,9 @@ gcs-clear:
 bq-clear:
 	@echo "🧽 Truncating BigQuery tables..."
 	bq query --use_legacy_sql=false \
-	  'TRUNCATE TABLE `hygiene-prediction.HygienePredictionRow.CleanedInspectionRow`'
+	  'TRUNCATE TABLE `hygiene-prediction-434.HygienePredictionRow.CleanedInspectionRow`'
 	bq query --use_legacy_sql=false \
-	  'TRUNCATE TABLE `hygiene-prediction.HygienePredictionColumn.CleanedInspectionColumn`'
+	  'TRUNCATE TABLE `hygiene-prediction-434.HygienePredictionColumn.CleanedInspectionColumn`'
 	@echo "✅ BigQuery tables cleared."
 
 # === TAG & PUSH CONTAINER TO ARTIFACT REGISTRY ===
@@ -111,8 +111,8 @@ push:
 	fi; \
 	echo "📦 Tagging and pushing image: $$name"; \
 	gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev; \
-	docker tag hygiene_prediction-$$name us-central1-docker.pkg.dev/hygiene-prediction/containers/$$name; \
-	docker push us-central1-docker.pkg.dev/hygiene-prediction/containers/$$name
+	docker tag hygiene_prediction-$$name us-central1-docker.pkg.dev/hygiene-prediction-434/containers/$$name; \
+	docker push us-central1-docker.pkg.dev/hygiene-prediction-434/containers/$$name
 
 
 # === DEPLOY TO CLOUD RUN WITH OPTIONAL TRIGGER_URL ===
@@ -151,7 +151,7 @@ push:
 # 	CONFIG_B64=$$(echo "$$CONFIG" | base64 -w 0) && \
 # 	echo "🚀 Redeploying trigger with full service URLs..." && \
 # 	gcloud run deploy trigger \
-# 	  --image=us-central1-docker.pkg.dev/hygiene-prediction/containers/trigger \
+# 	  --image=us-central1-docker.pkg.dev/hygiene-prediction-434/containers/trigger \
 # 	  --platform=managed \
 # 	  --region=us-central1 \
 # 	  --allow-unauthenticated \
@@ -201,7 +201,7 @@ load:
 	@if [ -z "$(word 2,$(MAKECMDGOALS))" ]; then \
 	  echo "❌ Usage: make load <max_offset>"; \
 	else \
-	  curl -X POST https://trigger-wrja4w3inq-uc.a.run.app/run \
+	  curl -X POST https://trigger-931515156181.us-central1.run.app/run \
 	    -H "Content-Type: application/json" \
 	    -d '{"max_offset": '$(word 2,$(MAKECMDGOALS))'}'; \
 	fi
@@ -211,19 +211,29 @@ load:
 
 
 
+
 delete-cloud:
-	@echo "🔴 Deleting all Cloud Run services in hygiene-prediction..."
-	gcloud run services delete trigger --quiet --region=us-central1 --project=hygiene-prediction
-	gcloud run services delete extractor --quiet --region=us-central1 --project=hygiene-prediction
-	gcloud run services delete cleaner --quiet --region=us-central1 --project=hygiene-prediction
-	gcloud run services delete loader-json --quiet --region=us-central1 --project=hygiene-prediction
-	gcloud run services delete loader-parquet --quiet --region=us-central1 --project=hygiene-prediction
+	@echo "🔴 Deleting all Cloud Run services in hygiene-prediction-434..."
+	gcloud run services delete trigger --quiet --region=us-central1 --project=hygiene-prediction-434
+	gcloud run services delete extractor --quiet --region=us-central1 --project=hygiene-prediction-434
+	gcloud run services delete cleaner --quiet --region=us-central1 --project=hygiene-prediction-434
+	gcloud run services delete loader-json --quiet --region=us-central1 --project=hygiene-prediction-434
+	gcloud run services delete loader-parquet --quiet --region=us-central1 --project=hygiene-prediction-434
 	@echo "✅ Cloud Run services deleted."
 
 
 deploy-all:
 	@echo "🚀 Running full pipeline deployment..."
 	python3 cloud_deploy.py 
+
+
+
+trigger_purge:
+	@echo "🧹 Purging trigger cache at https://trigger-931515156181.us-central1.run.app/purge..."
+	@curl -s -X POST https://trigger-931515156181.us-central1.run.app/purge && echo "✅ Trigger cache cleared."
+
+%:
+	@:
 
 
 
@@ -238,5 +248,90 @@ describe-cloud-run-%: describe-cloud-run
 # === FALLBACK (ignore unknown args like make extract 2000) ===
 %:
 	@true
+
+
+
+# =====================================
+# Switch to correct GCP account and project
+# =====================================
+
+switch-account:
+	@echo "🔄 Switching to account malawley434@gmail.com and project hygiene-prediction-434..."
+	gcloud auth login
+	gcloud config set account malawley434@gmail.com
+	gcloud config set project hygiene-prediction-434
+	@echo "✅ Now using account malawley434@gmail.com on project hygiene-prediction-434."
+
+# === ML Dashboard (ml-db) Commands ===
+
+# Hardcoded absolute paths (Windows style)
+ML_DB_APP=C:/Users/malaw/OneDrive/Documents/MSDS/MSDS434/hygiene_prediction/src/dashboards/ml_dashboard/app.py
+ML_DB_LOG=C:/Users/malaw/OneDrive/Documents/MSDS/MSDS434/hygiene_prediction/src/dashboards/ml_dashboard/ml-db.log
+
+# === ML Dashboard (ml-db) Commands for Windows CMD ===
+
+# Run the ML dashboard in the background (non-blocking)
+ml-db:
+	@echo Launching ML Dashboard (ml-db) in background...
+	start /B streamlit run $(ML_DB_APP) > $(ML_DB_LOG) 2>&1
+
+# Stop the ML dashboard process (Windows version)
+ml-db-stop:
+	@echo Stopping ML Dashboard (ml-db)...
+	@taskkill /F /IM streamlit.exe > NUL 2>&1 || echo No Streamlit process found.
+
+# View the dashboard logs
+ml-db-logs:
+	@echo Viewing ML Dashboard logs...
+	@type $(ML_DB_LOG)
+
+# Clean (delete) dashboard logs
+ml-db-clean:
+	@echo Cleaning ML Dashboard log file...
+	@del /Q $(ML_DB_LOG)
+
+# === GCloud Authentication Setup ===
+
+gcloud-login:
+	@echo "🚀 Starting gcloud login (manual)..."
+	gcloud auth login --no-launch-browser
+
+gcloud-set-account:
+	@echo "🔧 Setting active account to malawley434@gmail.com..."
+	gcloud config set account malawley434@gmail.com
+
+gcloud-set-project:
+	@echo "🔧 Setting project to hygiene-prediction-434..."
+	gcloud config set project hygiene-prediction-434
+
+gcloud-status:
+	@echo "📋 Showing current gcloud account and project..."
+	gcloud auth list
+	gcloud config list project
+
+# === Start ML API (FastAPI service) ===
+ml-api:
+	@echo "🚀 Starting ML API on port 8090..."
+	uvicorn src.dashboards.ml_dashboard.risk_report_service:app --reload --port 8090
+
+# === Start Streamlit Dashboard ===
+ml-ui:
+	@echo "🧠 Launching Streamlit UI on port 8501..."
+	streamlit run src/dashboards/ml_dashboard/app.py
+
+auth-service-account:
+	@echo "🔐 Activating service account..."
+	gcloud auth activate-service-account --key-file=hygiene-key.json
+
+# Makefile to prepare and run hygiene test configurations
+
+prepare-test:
+	@echo "🛠️  Generating configuration JSON files..."
+	python prepare_test_configurations.py
+
+run-test:
+	@echo "🚀 Running test configurations..."
+	python run_test_configurations.py
+
 
 

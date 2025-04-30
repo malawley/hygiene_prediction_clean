@@ -1,0 +1,37 @@
+{
+  "access": [
+    {
+      "role": "WRITER",
+      "specialGroup": "projectWriters"
+    },
+    {
+      "role": "WRITER",
+      "userByEmail": "malawley434@gmail.com"
+    },
+    {
+      "role": "OWNER",
+      "specialGroup": "projectOwners"
+    },
+    {
+      "role": "OWNER",
+      "userByEmail": "malawley434@gmail.com"
+    },
+    {
+      "role": "READER",
+      "specialGroup": "projectReaders"
+    }
+  ],
+  "creationTime": "1745370665180",
+  "datasetReference": {
+    "datasetId": "HygienePredictionRow",
+    "projectId": "hygiene-prediction-434-434"
+  },
+  "etag": "dfQay9+6ZYPn3GgASkUEGQ==",
+  "id": "hygiene-prediction-434-434:HygienePredictionRow",
+  "kind": "bigquery#dataset",
+  "lastModifiedTime": "1745371959017",
+  "location": "US",
+  "maxTimeTravelHours": "168",
+  "selfLink": "https://bigquery.googleapis.com/bigquery/v2/projects/hygiene-prediction-434-434/datasets/HygienePredictionRow",
+  "type": "DEFAULT"
+}

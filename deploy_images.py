@@ -11,7 +11,7 @@ SERVICES = [
     "eda-dashboard"
 ]
 
-REGISTRY = "us-central1-docker.pkg.dev/hygiene-prediction/containers"
+REGISTRY = "us-central1-docker.pkg.dev/hygiene-prediction-434/containers"
 TRIGGER_URL = "https://trigger-wrja4w3inq-uc.a.run.app/clean"
                
 def run(cmd, desc):

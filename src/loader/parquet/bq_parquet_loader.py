@@ -20,7 +20,7 @@ logger = logging.getLogger("bq_parquet_loader")
 # === Config from Environment ===
 BUCKET_NAME = os.environ["BUCKET_NAME"]
 GCS_PREFIX = os.environ.get("GCS_PREFIX", "clean-data")
-BQ_PROJECT = os.environ.get("BQ_PROJECT", "hygiene-prediction")
+BQ_PROJECT = os.environ.get("BQ_PROJECT", "hygiene-prediction-434")
 BQ_DATASET = os.environ.get("BQ_DATASET", "HygienePredictionColumn")
 BQ_TABLE = os.environ.get("BQ_TABLE", "CleanedInspectionColumn")
 
@@ -64,6 +64,43 @@ def log_active_credentials():
         logger.info(f"Quota project ID: {credentials.quota_project_id}")
     if hasattr(credentials, "service_account_email"):
         logger.info(f"Service Account: {credentials.service_account_email}")
+
+
+def ensure_table_parquet(table_name: str, date: str):
+    """Ensures a BigQuery table exists. Creates it using the first Parquet file if missing."""
+    logger.info(f"🔍 Checking BigQuery table: {table_name}")
+
+    client = bigquery.Client()
+    storage_client = storage.Client()
+
+    table_id = f"{BQ_PROJECT}.{BQ_DATASET}.{table_name}"
+    dataset_id = f"{BQ_PROJECT}.{BQ_DATASET}"
+
+    ensure_dataset_exists(client, dataset_id)
+
+    try:
+        client.get_table(table_id)
+        logger.info(f"✅ Table exists: {table_id}")
+        return
+    except NotFound:
+        logger.warning(f"🆕 Table not found: {table_id}, attempting to create...")
+
+    files = load_manifest(storage_client, date)
+    if not files:
+        logger.error(f"❌ No files found for {date}, cannot create table.")
+        return
+
+    source_uri = f"gs://{BUCKET_NAME}/{GCS_PREFIX}/{date}/{files[0]}"
+    job_config = bigquery.LoadJobConfig(
+        source_format=bigquery.SourceFormat.PARQUET,
+        autodetect=True
+    )
+
+    logger.info(f"📥 Creating table {table_id} from {source_uri}")
+    load_job = client.load_table_from_uri(source_uri, table_id, job_config=job_config)
+    load_job.result()
+    logger.info(f"✅ Created table: {table_id}")
+
 
 
 def load_manifest(storage_client, date: str):
@@ -151,8 +188,6 @@ def load_parquet_to_bigquery(date: str):
 
     return count, duration
 
-
-
 def http_entry_point(request):
     try:
         request_json = request.get_json()
@@ -165,6 +200,7 @@ def http_entry_point(request):
         start = time.time()
         log_active_credentials()
 
+        ensure_table_parquet(BQ_TABLE, date)
         files_processed, duration = load_parquet_to_bigquery(date)
         total_duration = round(time.time() - start, 3)
 

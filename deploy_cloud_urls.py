@@ -34,7 +34,7 @@ def main():
         print(f"🚀 Redeploying {service_name}...")
         subprocess.run([
             "gcloud", "run", "deploy", service_name,
-            "--image", f"us-central1-docker.pkg.dev/hygiene-prediction/containers/{image_tag}",
+            "--image", f"us-central1-docker.pkg.dev/hygiene-prediction-434/containers/{image_tag}",
             "--platform=managed",
             "--region=us-central1",
             "--allow-unauthenticated",

@@ -21,7 +21,7 @@ logger = logging.getLogger("bq_ndjson_loader")
 # === Config from Environment ===
 BUCKET_NAME = os.environ["BUCKET_NAME"]
 GCS_PREFIX = os.environ.get("GCS_PREFIX", "clean-data")
-BQ_PROJECT = os.environ.get("BQ_PROJECT", "hygiene-prediction")
+BQ_PROJECT = os.environ.get("BQ_PROJECT", "hygiene-prediction-434")
 BQ_DATASET = os.environ.get("BQ_DATASET", "HygienePredictionRow")
 BQ_TABLE = os.environ.get("BQ_TABLE", "CleanedInspectionRow")
 
@@ -54,6 +54,7 @@ def log_active_credentials():
         logger.info(f"Service Account: {credentials.service_account_email}")
 
 def ensure_dataset_exists(bq_client, dataset_id: str):
+    logger.info(f"🔍 Checking for dataset: {dataset_id}")
     try:
         bq_client.get_dataset(dataset_id)
         logger.info(f"✅ Dataset exists: {dataset_id}")
@@ -65,6 +66,52 @@ def ensure_dataset_exists(bq_client, dataset_id: str):
     except Exception as e:
         logger.exception(f"❌ Error checking or creating dataset: {e}")
         raise
+    
+def ensure_table(table_name: str, date: str):
+    """Ensures a BigQuery table exists. Creates it using the first NDJSON file if missing."""
+    logger.info(f"🔍 Checking BigQuery table: {table_name}")
+
+    client = bigquery.Client()
+    logger.info(f"👤 BigQuery client project: {client.project}")
+
+    storage_client = storage.Client()
+    logger.info(f"👤 Storage client project: {storage_client.project}")
+
+
+    table_id = f"{BQ_PROJECT}.{BQ_DATASET}.{table_name}"
+    dataset_id = f"{BQ_PROJECT}.{BQ_DATASET}"
+    logger.info(f"🔧 BQ_PROJECT: {BQ_PROJECT}")
+    logger.info(f"🔧 BQ_DATASET: {BQ_DATASET}")
+    logger.info(f"🔧 BQ_TABLE: {table_name}")
+    logger.info(f"🔧 Resolved dataset_id: {BQ_PROJECT}.{BQ_DATASET}")
+    logger.info(f"🔧 Resolved table_id: {BQ_PROJECT}.{BQ_DATASET}.{table_name}")
+
+
+    ensure_dataset_exists(client, dataset_id)
+
+    try:
+        client.get_table(table_id)
+        logger.info(f"✅ Table exists: {table_id}")
+        return
+    except NotFound:
+        logger.warning(f"🆕 Table not found: {table_id}, attempting to create...")
+
+    files = load_manifest(storage_client, date)
+    if not files:
+        logger.error(f"❌ No files found for {date}, cannot create table.")
+        return
+
+    source_uri = f"gs://{BUCKET_NAME}/{GCS_PREFIX}/{date}/{files[0]}"
+    job_config = bigquery.LoadJobConfig(
+        source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
+        autodetect=True
+    )
+
+    logger.info(f"📥 Creating table {table_id} from {source_uri}")
+    load_job = client.load_table_from_uri(source_uri, table_id, job_config=job_config)
+    load_job.result()
+    logger.info(f"✅ Created table: {table_id}")
+    
 
 def load_manifest(storage_client, date: str):
     manifest_path = f"{GCS_PREFIX}/{date}/_manifest.json"
@@ -165,6 +212,7 @@ def http_entry_point(request):
         start = time.time()
         log_active_credentials()
 
+        ensure_table(BQ_TABLE, date)
         files_processed, duration = load_ndjson_to_bigquery(date)
         total_duration = round(time.time() - start, 3)
 

@@ -24,7 +24,7 @@ client = bigquery.Client()
 
 # ---- Define and build violation_code_sheet table
 def create_violation_code_sheet_table():
-    dataset_id = "hygiene-prediction.HygienePredictionRow"
+    dataset_id = "hygiene-prediction-434-434.HygienePredictionRow"
     table_id = f"{dataset_id}.violation_code_sheet"
     
     script_dir = os.path.dirname(__file__)
@@ -48,35 +48,35 @@ def create_violation_code_sheet_table():
 
 # View 1: violation_code_count
 violation_code_count_sql = """
-CREATE OR REPLACE VIEW `hygiene-prediction.HygienePredictionRow.violation_code_count` AS
+CREATE OR REPLACE VIEW `hygiene-prediction-434-434.HygienePredictionRow.violation_code_count` AS
 SELECT 
   code, 
   COUNT(*) AS violation_count
-FROM `hygiene-prediction.HygienePredictionRow.CleanedInspectionRow`,
+FROM `hygiene-prediction-434-434.HygienePredictionRow.CleanedInspectionRow`,
 UNNEST(violation_codes) AS code
 GROUP BY code
 """
 
 # View 2: violation_code_count_description
 violation_code_count_description_sql = """
-CREATE OR REPLACE VIEW `hygiene-prediction.HygienePredictionRow.violation_code_count_description` AS
+CREATE OR REPLACE VIEW `hygiene-prediction-434-434.HygienePredictionRow.violation_code_count_description` AS
 SELECT 
   c.code,
   s.description,
   c.violation_count
-FROM `hygiene-prediction.HygienePredictionRow.violation_code_count` AS c
-LEFT JOIN `hygiene-prediction.HygienePredictionRow.violation_code_sheet` AS s
+FROM `hygiene-prediction-434-434.HygienePredictionRow.violation_code_count` AS c
+LEFT JOIN `hygiene-prediction-434-434.HygienePredictionRow.violation_code_sheet` AS s
 ON c.code = s.code
 """
 
 # View 3: violation_code_by_facility_category
 violation_by_facility_category_sql = """
-CREATE OR REPLACE VIEW `hygiene-prediction.HygienePredictionRow.violation_code_by_facility_category` AS
+CREATE OR REPLACE VIEW `hygiene-prediction-434-434.HygienePredictionRow.violation_code_by_facility_category` AS
 WITH exploded AS (
   SELECT 
     code,
     facility_category
-  FROM `hygiene-prediction.HygienePredictionRow.CleanedInspectionRow`,
+  FROM `hygiene-prediction-434-434.HygienePredictionRow.CleanedInspectionRow`,
   UNNEST(violation_codes) AS code
 )
 SELECT 
@@ -90,7 +90,7 @@ ORDER BY code, violation_count DESC
 
 # View 4: violation_correlation_view
 violation_correlation_sql = """
-CREATE OR REPLACE VIEW `hygiene-prediction.HygienePredictionRow.violation_correlation_view` AS
+CREATE OR REPLACE VIEW `hygiene-prediction-434-434.HygienePredictionRow.violation_correlation_view` AS
 WITH violations_grouped AS (
   SELECT 
     inspection_id,
@@ -99,7 +99,7 @@ WITH violations_grouped AS (
     SELECT 
       inspection_id, 
       code
-    FROM `hygiene-prediction.HygienePredictionRow.CleanedInspectionRow`,
+    FROM `hygiene-prediction-434-434.HygienePredictionRow.CleanedInspectionRow`,
     UNNEST(violation_codes) AS code
   )
   GROUP BY inspection_id
@@ -124,12 +124,12 @@ ORDER BY co_occurrence_count DESC
 
 # View 5: violation_facility_labeled
 violation_facility_labeled_sql = """
-CREATE OR REPLACE VIEW `hygiene-prediction.HygienePredictionRow.violation_facility_labeled` AS
+CREATE OR REPLACE VIEW `hygiene-prediction-434-434.HygienePredictionRow.violation_facility_labeled` AS
 WITH exploded AS (
   SELECT 
     code,
     facility_category
-  FROM `hygiene-prediction.HygienePredictionRow.CleanedInspectionRow`,
+  FROM `hygiene-prediction-434-434.HygienePredictionRow.CleanedInspectionRow`,
   UNNEST(violation_codes) AS code
 ),
 counts AS (
@@ -147,7 +147,7 @@ joined AS (
     c.violation_count,
     s.description
   FROM counts AS c
-  LEFT JOIN `hygiene-prediction.HygienePredictionRow.violation_code_sheet` AS s
+  LEFT JOIN `hygiene-prediction-434-434.HygienePredictionRow.violation_code_sheet` AS s
   ON c.code = s.code
 )
 SELECT 
@@ -158,16 +158,16 @@ FROM joined
 
 # View 6: violation_cooccurrence_labeled_top10
 violation_cooccurrence_labeled_top10_sql = """
-CREATE OR REPLACE VIEW `hygiene-prediction.HygienePredictionRow.violation_cooccurrence_labeled_top10` AS
+CREATE OR REPLACE VIEW `hygiene-prediction-434-434.HygienePredictionRow.violation_cooccurrence_labeled_top10` AS
 WITH top_codes AS (
   SELECT code
-  FROM `hygiene-prediction.HygienePredictionRow.violation_code_count`
+  FROM `hygiene-prediction-434-434.HygienePredictionRow.violation_code_count`
   ORDER BY violation_count DESC
   LIMIT 10
 ),
 filtered AS (
   SELECT *
-  FROM `hygiene-prediction.HygienePredictionRow.violation_correlation_view`
+  FROM `hygiene-prediction-434-434.HygienePredictionRow.violation_correlation_view`
   WHERE code_a IN (SELECT code FROM top_codes)
     AND code_b IN (SELECT code FROM top_codes)
 ),
@@ -179,9 +179,9 @@ joined AS (
     sa.description AS description_a,
     sb.description AS description_b
   FROM filtered AS f
-  LEFT JOIN `hygiene-prediction.HygienePredictionRow.violation_code_sheet` AS sa
+  LEFT JOIN `hygiene-prediction-434-434.HygienePredictionRow.violation_code_sheet` AS sa
     ON f.code_a = sa.code
-  LEFT JOIN `hygiene-prediction.HygienePredictionRow.violation_code_sheet` AS sb
+  LEFT JOIN `hygiene-prediction-434-434.HygienePredictionRow.violation_code_sheet` AS sb
     ON f.code_b = sb.code
 )
 SELECT *, 
@@ -192,12 +192,12 @@ FROM joined
 
 # View 7: Violation by Zipcode
 violation_by_zip_sql = """
-CREATE OR REPLACE VIEW `hygiene-prediction.HygienePredictionRow.violation_by_zip` AS
+CREATE OR REPLACE VIEW `hygiene-prediction-434-434.HygienePredictionRow.violation_by_zip` AS
 SELECT 
   zip,
   code,
   COUNT(*) AS violation_count
-FROM `hygiene-prediction.HygienePredictionRow.CleanedInspectionRow`,
+FROM `hygiene-prediction-434-434.HygienePredictionRow.CleanedInspectionRow`,
 UNNEST(violation_codes) AS code
 GROUP BY zip, code
 """
@@ -205,14 +205,14 @@ GROUP BY zip, code
 
 # View 8: Top Violators by Name
 violation_by_facility_sql = """
-CREATE OR REPLACE VIEW `hygiene-prediction.HygienePredictionRow.violation_by_facility` AS
+CREATE OR REPLACE VIEW `hygiene-prediction-434-434.HygienePredictionRow.violation_by_facility` AS
 WITH exploded AS (
   SELECT 
     dba_name,
     zip,
     facility_category,
     code
-  FROM `hygiene-prediction.HygienePredictionRow.CleanedInspectionRow`,
+  FROM `hygiene-prediction-434-434.HygienePredictionRow.CleanedInspectionRow`,
   UNNEST(violation_codes) AS code
 )
 SELECT 
@@ -229,15 +229,15 @@ GROUP BY dba_name, zip, facility_category, code
 
 # View 9: Violation trends by month
 violation_trends_by_month_sql = """
-CREATE OR REPLACE VIEW `hygiene-prediction.HygienePredictionRow.violation_trends_by_month_labeled` AS
+CREATE OR REPLACE VIEW `hygiene-prediction-434-434.HygienePredictionRow.violation_trends_by_month_labeled` AS
 SELECT 
     t.month,
     t.code,
     s.description,
     t.violation_count,
     CONCAT(CAST(t.code AS STRING), ' - ', IFNULL(s.description, 'Unknown')) AS code_description
-FROM `hygiene-prediction.HygienePredictionRow.violation_trends_by_month` t
-LEFT JOIN `hygiene-prediction.HygienePredictionRow.violation_code_sheet` s
+FROM `hygiene-prediction-434-434.HygienePredictionRow.violation_trends_by_month` t
+LEFT JOIN `hygiene-prediction-434-434.HygienePredictionRow.violation_code_sheet` s
 ON t.code = s.code
 """
 
@@ -246,7 +246,7 @@ ON t.code = s.code
 
 # View 10: Violation by facility
 violation_facility_map_sql = """
-CREATE OR REPLACE VIEW `hygiene-prediction.HygienePredictionRow.violation_by_facility_map` AS
+CREATE OR REPLACE VIEW `hygiene-prediction-434-434.HygienePredictionRow.violation_by_facility_map` AS
 SELECT 
   dba_name,
   address,
@@ -261,7 +261,7 @@ FROM (
     latitude,
     longitude,
     code
-  FROM `hygiene-prediction.HygienePredictionRow.CleanedInspectionRow`,
+  FROM `hygiene-prediction-434-434.HygienePredictionRow.CleanedInspectionRow`,
   UNNEST(violation_codes) AS code
   WHERE latitude IS NOT NULL AND longitude IS NOT NULL
 )

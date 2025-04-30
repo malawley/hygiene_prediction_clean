@@ -1,5 +1,5 @@
 @echo off
-set PROJECT_ID=hygiene-prediction
+set PROJECT_ID=hygiene-prediction-434
 set SERVICE_NAME=cleaner
 set REGION=us-central1
 set IMAGE_NAME=gcr.io/%PROJECT_ID%/%SERVICE_NAME%
@@ -19,7 +19,7 @@ gcloud run deploy %SERVICE_NAME% ^
   --platform=managed ^
   --region=%REGION% ^
   --allow-unauthenticated ^
-  --set-env-vars=RUN_MODE=cloud,BUCKET_NAME=raw-inspection-data,RAW_PREFIX=raw-data,CLEAN_PREFIX=clean-data,CLEAN_ROW_BUCKET_NAME=cleaned-inspection-data-row,CLEAN_COL_BUCKET_NAME=cleaned-inspection-data-column
+  --set-env-vars=RUN_MODE=cloud,BUCKET_NAME=raw-inspection-data-434,RAW_PREFIX=raw-data,CLEAN_PREFIX=clean-data,CLEAN_ROW_BUCKET_NAME=cleaned-inspection-data-row-434,CLEAN_COL_BUCKET_NAME=cleaned-inspection-data-column-434
 
 echo.
 echo ✅ Deployment complete!

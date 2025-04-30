@@ -65,8 +65,8 @@ def post_back_to_trigger(payload, trigger_url):
 BUCKET_NAME = os.environ["BUCKET_NAME"]
 RAW_PREFIX = os.environ.get("RAW_PREFIX", "raw-data")
 CLEAN_PREFIX = os.environ.get("CLEAN_PREFIX", "clean-data")
-CLEAN_ROW_BUCKET_NAME = os.environ.get("CLEAN_ROW_BUCKET_NAME", "cleaned-inspection-data-row")
-CLEAN_COL_BUCKET_NAME = os.environ.get("CLEAN_COL_BUCKET_NAME", "cleaned-inspection-data-column")
+CLEAN_ROW_BUCKET_NAME = os.environ.get("CLEAN_ROW_BUCKET_NAME", "cleaned-inspection-data-row-434")
+CLEAN_COL_BUCKET_NAME = os.environ.get("CLEAN_COL_BUCKET_NAME", "cleaned-inspection-data-column-434")
 
 # === GCS Clients ===
 storage_client = storage.Client()

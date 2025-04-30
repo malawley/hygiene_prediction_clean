@@ -1,0 +1,18 @@
+dba_name,address,zip,place_id,predicted_failure_probability,risk_zone,scoring_status
+central gyros corp,3127 N Central Ave,60634,ChIJ1eUUAojMD4gRtxwibG4nUSg,0.87,high,Scored
+wendys old fashioned hamburgers,758 W 117th St,60628,ChIJ5bN5y0YkDogRsLOqK27ffME,0.85,high,Scored
+the dugout   press box,950 W Addison St,60613,ChIJG1IJI_HTD4gRzzeCdQ243nA,0.85,high,Scored
+4 seasons,4755 S Ashland Ave,60609,ChIJw0X3wdYvDogRbSlzB7gW7pA,0.84,high,Scored
+babas halal,7901 S Damen Ave,60620,ChIJc5KUirQvDogRhvN7ARizMSk,0.83,high,Scored
+skyway dog house inc,9480 S Ewing Ave,60617,ChIJrQ_FiwjYEYgRj4ezyWLXFAk,0.83,high,Scored
+jerkja876,819 S Pulaski Rd,60624,ChIJhbUJU4YzDogRvVna2etUJ6U,0.8,high,Scored
+panda china,4042 N Narragansett Ave,60634,ChIJQ75TFZLLD4gRk2kekRqO0BI,0.77,high,Scored
+arepa george,1552 N Kedzie Ave,60651,ChIJh5mjMlvND4gRxV26oS6For8,0.77,high,Scored
+the wrap and roll cafe,1141 S Western Ave,60612,ChIJ_elO1SAtDogRsibFMADQ2NY,0.74,medium,Scored
+yatai,6230 N Broadway,60660,ChIJtcJnPSHRD4gR3JCgw2GtwGc,0.7,medium,Scored
+que rico restaurant,2814 N Southport Ave,60657,ChIJT28rJvnSD4gRi1gNBvsaYyw,0.7,medium,Scored
+gordillas,5734 S Pulaski Rd,60629,ChIJyfPSHx8xDogRpoX93PdPLtU,0.67,medium,Scored
+the dog house grill,1534 N Wells St,60610,ChIJv5-hzEbTD4gRbtLUNybKHYs,0.65,medium,Scored
+federales,180 N Morgan St,60607,ChIJc4CaDdosDogRD-B2RcMW5yE,0.65,medium,Scored
+dunkin donuts,500 W Madison St,60661,ChIJj52IyzAtDogRvwJos-Tr-cM,0.58,medium,Scored
+taqueria tejupilco llc,2933 N Broadway,60657,ChIJS-vS8ubTD4gRZ6eTHxhhpmc,0.57,medium,Scored

@@ -1,5 +1,5 @@
 @echo off
-set PROJECT_ID=hygiene-prediction
+set PROJECT_ID=hygiene-prediction-434
 set SERVICE_NAME=eda-dashboard
 set REGION=us-central1
 set IMAGE_NAME=gcr.io/%PROJECT_ID%/%SERVICE_NAME%

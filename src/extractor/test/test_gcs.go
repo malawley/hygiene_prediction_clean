@@ -16,7 +16,7 @@ func main() {
 	}
 	defer client.Close()
 
-	bucket := "raw-inspection-data"
+	bucket := "raw-inspection-data-434"
 	_, err = client.Bucket(bucket).Attrs(ctx)
 	if err != nil {
 		fmt.Println("❌ Could not access bucket:", err)

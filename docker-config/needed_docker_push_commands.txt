@@ -1,15 +1,15 @@
 # Authenticate with Google (if not already done)
 gcloud auth login
-gcloud config set project hygiene-prediction
+gcloud config set project hygiene-prediction-434
 
 # Authorize Docker to access Artifact Registry (if not already done)
 gcloud auth configure-docker us-central1-docker.pkg.dev
 
 # Tag the image for Artifact Registry
-docker tag trigger us-central1-docker.pkg.dev/hygiene-prediction/containers/trigger
+docker tag trigger us-central1-docker.pkg.dev/hygiene-prediction-434/containers/trigger
 
 # Authenticate Docker with Artifact Registry using an access token
 gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev
 
 # Push the image
-docker push us-central1-docker.pkg.dev/hygiene-prediction/containers/trigger
+docker push us-central1-docker.pkg.dev/hygiene-prediction-434/containers/trigger

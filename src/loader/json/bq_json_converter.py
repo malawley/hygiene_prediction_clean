@@ -17,7 +17,7 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 # === Constants ===
-BUCKET_NAME = "cleaned-inspection-data-row"
+BUCKET_NAME = "cleaned-inspection-data-row-434"
 NDJSON_PREFIX = "clean-data-ndjson"
 INPUT_PREFIX = "clean-data"
 

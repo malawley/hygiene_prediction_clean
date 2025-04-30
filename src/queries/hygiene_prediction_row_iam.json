@@ -1,0 +1,10 @@
+{
+  "bindings": [
+    {
+      "role": "roles/bigquery.dataEditor",
+      "members": [
+        "user:malawley434@gmail.com"
+      ]
+    }
+  ]
+}
