@@ -1,8 +1,8 @@
 package main
 
 import (
+	"app/configure"
 	"bytes"
-	"configure"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 // Global service URLs loaded from services.json
@@ -44,8 +45,12 @@ func handleRun(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var payload struct {
-		Date      string `json:"date"`
-		MaxOffset int    `json:"max_offset"`
+		Date         string  `json:"date"`
+		MaxOffset    int     `json:"max_offset"`
+		APIErrorProb float64 `json:"api_error_prob"`
+		GCSErrorProb float64 `json:"gcs_error_prob"`
+		RowDropProb  float64 `json:"row_drop_prob"`
+		DelayProb    float64 `json:"delay_prob"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
@@ -54,14 +59,23 @@ func handleRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("🚀 Pipeline run started for date=%s with max_offset=%d", payload.Date, payload.MaxOffset)
+	log.Printf("🧪 Raw struct payload: %+v", payload)
+	log.Printf("🧪 Received payload: api=%v gcs=%v drop=%v delay=%v",
+		payload.APIErrorProb, payload.GCSErrorProb, payload.RowDropProb, payload.DelayProb)
+	log.Printf("🚀 HOWDY!")
+	log.Printf("🚀 Pipeline run ONE started for date=%s with max_offset=%d", payload.Date, payload.MaxOffset)
+	log.Printf("🚀 Pipeline run TWO started for date=%s with max_offset=%d with api=%v", payload.Date, payload.MaxOffset, payload.APIErrorProb)
+	log.Printf("🧪 Raw struct payload: %+v", payload)
+	log.Printf("🧪 Received payload: api=%v gcs=%v drop=%v delay=%v",
+		payload.APIErrorProb, payload.GCSErrorProb, payload.RowDropProb, payload.DelayProb)
 
-	data := struct {
-		Date      string `json:"date"`
-		MaxOffset int    `json:"max_offset"`
-	}{
-		Date:      payload.Date,
-		MaxOffset: payload.MaxOffset,
+	data := map[string]interface{}{
+		"date":           payload.Date,
+		"max_offset":     payload.MaxOffset,
+		"api_error_prob": payload.APIErrorProb,
+		"gcs_error_prob": payload.GCSErrorProb,
+		"row_drop_prob":  payload.RowDropProb,
+		"delay_prob":     payload.DelayProb,
 	}
 
 	body, err := json.Marshal(data)
@@ -142,6 +156,12 @@ func handleTrigger(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// === Modified Routing Logic ===
+	// This version skips the loader-JSON step to avoid writing to CleanedInspectionRow.
+	// Only the loader-parquet step is triggered after the cleaner completes.
+	// This ensures the ML pipeline (which depends on CleanedInspectionRow) remains unaffected
+	// while allowing the demo pipeline to populate CleanedInspectionColumn for monitoring.
+
 	// Routing logic
 	switch event {
 	case "extractor_completed":
@@ -149,16 +169,30 @@ func handleTrigger(w http.ResponseWriter, r *http.Request) {
 		forwardToService(cleanerURL, "Cleaner", map[string]string{"date": date})
 
 	case "cleaner_completed":
-		log.Println("📤 Forwarding to loader-json...")
-		forwardToService(loaderURL, "Loader-JSON", map[string]string{"date": date})
-
-	case "loader_json_completed":
-		log.Println("📤 Forwarding to loader-parquet...")
+		log.Println("📤 Forwarding to loader-parquet (skipping loader-json)...")
 		forwardToService(loaderParquetURL, "Loader-Parquet", map[string]string{"date": date})
 
 	case "loader_parquet_completed":
 		log.Println("✅ Pipeline completed successfully for date:", date)
 	}
+
+	// Routing logic
+	// switch event {
+	// case "extractor_completed":
+	// 	log.Println("📤 Forwarding to cleaner...")
+	// 	forwardToService(cleanerURL, "Cleaner", map[string]string{"date": date})
+
+	// case "cleaner_completed":
+	// 	log.Println("📤 Forwarding to loader-json...")
+	// 	forwardToService(loaderURL, "Loader-JSON", map[string]string{"date": date})
+
+	// case "loader_json_completed":
+	// 	log.Println("📤 Forwarding to loader-parquet...")
+	// 	forwardToService(loaderParquetURL, "Loader-Parquet", map[string]string{"date": date})
+
+	// case "loader_parquet_completed":
+	// 	log.Println("✅ Pipeline completed successfully for date:", date)
+	// }
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("✅ Trigger handled successfully"))
@@ -167,6 +201,8 @@ func handleTrigger(w http.ResponseWriter, r *http.Request) {
 func main() {
 	// Ensure log directory exists
 	_ = os.MkdirAll("logs", 0755)
+
+	_ = configure.LoadServiceConfig
 
 	configB64 := os.Getenv("SERVICE_CONFIG_B64")
 	if configB64 == "" {
@@ -205,6 +241,12 @@ func main() {
 		log.Println("🧹 Cleared completed event cache")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("✅ Cache cleared"))
+	})
+
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, `{"status":"ok", "time":"%s"}`, time.Now().Format(time.RFC3339))
 	})
 
 	log.Fatal(http.ListenAndServe(":8080", nil))

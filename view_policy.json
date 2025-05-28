@@ -1,0 +1,10 @@
+{
+  "bindings": [
+    {
+      "role": "roles/bigquery.dataViewer",
+      "members": [
+        "serviceAccount:931515156181-compute@developer.gserviceaccount.com"
+      ]
+    }
+  ]
+}

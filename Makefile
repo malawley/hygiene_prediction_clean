@@ -11,6 +11,136 @@
 DATE ?= $(shell date +%F)
 MAX ?= 1000
 
+# === MANUAL BUILD TARGETS FOR CLOUD RUN SERVICES ===
+
+build-extractor:
+	docker build -t hygiene_prediction-extractor ./src/extractor
+
+build-cleaner:
+	docker build -t hygiene_prediction-cleaner ./src/cleaner
+
+build-loader-json:
+	docker build -t hygiene_prediction-loader-json ./src/loader-json
+
+build-loader-parquet:
+	docker build -t hygiene_prediction-loader-parquet ./src/loader-parquet
+
+build-trigger:
+	@echo "🔨 Building trigger binary..."
+	cd ./src/trigger && go build -o build/trigger ./cmd/trigger.go
+	@echo "🐳 Building Docker image..."
+	docker build -t hygiene_prediction-trigger ./src/trigger
+
+
+# === FULL BUILD, TAG, PUSH, DEPLOY FOR EACH SERVICE ===
+# ===  Make Commands above are not needed
+
+deploy-extractor:
+	@echo "🐳 Building Docker image for extractor..."
+	docker build --no-cache -t hygiene_prediction-extractor -f ./src/extractor/Dockerfile ./src/extractor
+
+	@echo "🔐 Authenticating with Artifact Registry..."
+	gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev
+
+	@echo "📦 Tagging and pushing image to Artifact Registry..."
+	docker tag hygiene_prediction-extractor us-central1-docker.pkg.dev/hygiene-prediction-434/containers/extractor
+	docker push us-central1-docker.pkg.dev/hygiene-prediction-434/containers/extractor
+
+	@echo "🚀 Deploying to Cloud Run..."
+	gcloud run deploy extractor \
+	  --image=us-central1-docker.pkg.dev/hygiene-prediction-434/containers/extractor \
+	  --platform=managed \
+	  --region=us-central1 \
+	  --allow-unauthenticated \
+	  --memory=1Gi \
+	  --timeout=300 \
+	  --set-env-vars=BUCKET_NAME=raw-inspection-data-434,TRIGGER_URL=https://trigger-931515156181.us-central1.run.app/clean
+
+
+
+deploy-cleaner:
+	docker build -t hygiene_prediction-cleaner ./src/cleaner
+	docker tag hygiene_prediction-cleaner us-central1-docker.pkg.dev/hygiene-prediction-434/containers/cleaner
+	gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev
+	docker push us-central1-docker.pkg.dev/hygiene-prediction-434/containers/cleaner
+	gcloud run deploy cleaner \
+	  --image=us-central1-docker.pkg.dev/hygiene-prediction-434/containers/cleaner \
+	  --platform=managed \
+	  --region=us-central1 \
+	  --allow-unauthenticated \
+	  --memory=1Gi \
+	  --timeout=300 \
+	  --set-env-vars=RAW_BUCKET=raw-inspection-data-434,CLEAN_BUCKET_ROW=cleaned-inspection-data-row-434,CLEAN_BUCKET_COLUMN=cleaned-inspection-data-column-434,TRIGGER_URL=https://trigger-931515156181.us-central1.run.app/clean
+
+
+deploy-loader-json:
+	docker build -t hygiene_prediction-loader-json ./src/loader-json
+	docker tag hygiene_prediction-loader-json us-central1-docker.pkg.dev/hygiene-prediction-434/containers/loader-json
+	gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev
+	docker push us-central1-docker.pkg.dev/hygiene-prediction-434/containers/loader-json
+	gcloud run deploy loader-json \
+	  --image=us-central1-docker.pkg.dev/hygiene-prediction-434/containers/loader-json \
+	  --platform=managed \
+	  --region=us-central1 \
+	  --allow-unauthenticated \
+	  --memory=1Gi \
+	  --timeout=300 \
+	  --set-env-vars=CLEAN_BUCKET_ROW=cleaned-inspection-data-row-434,TRIGGER_URL=https://trigger-931515156181.us-central1.run.app/clean
+
+
+deploy-loader-parquet:
+	docker build -t hygiene_prediction-loader-parquet ./src/loader-parquet
+	docker tag hygiene_prediction-loader-parquet us-central1-docker.pkg.dev/hygiene-prediction-434/containers/loader-parquet
+	gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev
+	docker push us-central1-docker.pkg.dev/hygiene-prediction-434/containers/loader-parquet
+	gcloud run deploy loader-parquet \
+	  --image=us-central1-docker.pkg.dev/hygiene-prediction-434/containers/loader-parquet \
+	  --platform=managed \
+	  --region=us-central1 \
+	  --allow-unauthenticated \
+	  --memory=1Gi \
+	  --timeout=300
+
+deploy-trigger:
+	@echo "🚀 Building Docker image with embedded Go build step..."
+	docker build --no-cache -t hygiene_prediction-trigger -f ./src/trigger/Dockerfile ./src/trigger
+
+	@echo "🔐 Authenticating with Artifact Registry..."
+	gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev
+
+	@echo "📦 Tagging and pushing image to Artifact Registry..."
+	docker tag hygiene_prediction-trigger us-central1-docker.pkg.dev/hygiene-prediction-434/containers/trigger
+	docker push us-central1-docker.pkg.dev/hygiene-prediction-434/containers/trigger
+
+	@echo "🚀 Deploying to Cloud Run..."
+	gcloud run deploy trigger \
+	  --image=us-central1-docker.pkg.dev/hygiene-prediction-434/containers/trigger \
+	  --platform=managed \
+	  --region=us-central1 \
+	  --allow-unauthenticated \
+	  --memory=1Gi \
+	  --timeout=300
+
+
+deploy-pipeline-monitor:
+	docker build -t hygiene_prediction-pipeline-monitor ./src/dashboards/pl_monitor_dashboard
+	docker tag hygiene_prediction-pipeline-monitor us-central1-docker.pkg.dev/hygiene-prediction-434/containers/pipeline-monitor
+	gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev
+	docker push us-central1-docker.pkg.dev/hygiene-prediction-434/containers/pipeline-monitor
+	gcloud run deploy pipeline-monitor \
+	  --image=us-central1-docker.pkg.dev/hygiene-prediction-434/containers/pipeline-monitor \
+	  --platform=managed \
+	  --region=us-central1 \
+	  --allow-unauthenticated \
+	  --memory=1Gi \
+	  --timeout=300
+
+
+
+
+
+
+
 # === BUILD ALL: clean everything + rebuild images + start containers ===
 build: clean
 	@echo "🚀 Building and starting containers..."
@@ -209,7 +339,9 @@ load:
 %:
 	@:
 
-
+open-ml-db:
+	@echo "Opening Cloud Run service in browser..."
+	@start https://hygiene-ml-ui-931515156181.us-central1.run.app
 
 
 delete-cloud:

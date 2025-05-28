@@ -62,7 +62,7 @@ def post_back_to_trigger(payload, trigger_url):
 
 
 # === Config (Cloud Native) ===
-BUCKET_NAME = os.environ["BUCKET_NAME"]
+BUCKET_NAME = os.environ["RAW_BUCKET"]
 RAW_PREFIX = os.environ.get("RAW_PREFIX", "raw-data")
 CLEAN_PREFIX = os.environ.get("CLEAN_PREFIX", "clean-data")
 CLEAN_ROW_BUCKET_NAME = os.environ.get("CLEAN_ROW_BUCKET_NAME", "cleaned-inspection-data-row-434")
@@ -267,6 +267,9 @@ def main(date: str):
 # === HTTP Entry Point ===
 def http_entry_point(request):
     """Cloud Run / HTTP function entry point."""
+    if request.path == "/health":
+        return ("ok", 200, {"Content-Type": "text/plain"})
+    
     try:
         request_json = request.get_json()
         if not request_json:
