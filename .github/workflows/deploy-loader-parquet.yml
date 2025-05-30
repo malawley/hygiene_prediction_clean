@@ -1,0 +1,44 @@
+name: Deploy loader-parquet to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/loader/parquet/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: ☁️ Set up Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: 🐳 Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+
+      - name: 🛠️ Build and push Docker image
+        run: |
+          IMAGE=us-central1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/cloud-run-repo/loader-parquet
+          docker build -t $IMAGE ./src/loader/parquet
+          docker push $IMAGE
+
+      - name: 🚀 Deploy to Cloud Run
+        run: |
+          gcloud run deploy loader-parquet \
+            --image us-central1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/cloud-run-repo/loader-parquet \
+            --region ${{ secrets.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-env-vars BQ_PROJECT=${{ secrets.PROJECT_ID }},BQ_DATASET=HygienePredictionColumn,BQ_TABLE=CleanedInspectionColumn,BUCKET_NAME=raw-inspection-data-434,GCS_PREFIX=clean-data
