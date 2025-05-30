@@ -28,12 +28,13 @@ jobs:
         run: |
           gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
-      - name: 🛠️ Build and push Docker image
+      - name: 🛠️ Build Docker image
         run: |
-          cd $GITHUB_WORKSPACE
-          IMAGE=us-central1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/cloud-run-repo/loader-parquet
-          docker build -t $IMAGE src/loader/parquet
-          docker push $IMAGE
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/cloud-run-repo/loader-parquet ./src/loader/parquet
+
+      - name: 📤 Push Docker image
+        run: |
+          docker push us-central1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/cloud-run-repo/loader-parquet
 
       - name: 🚀 Deploy to Cloud Run
         run: |
