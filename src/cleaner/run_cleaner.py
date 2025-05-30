@@ -265,6 +265,7 @@ def main(date: str):
 
 
 # === HTTP Entry Point ===
+# === HTTP Entry Point ===
 def http_entry_point(request):
     """Cloud Run / HTTP function entry point."""
     if request.path == "/health":
