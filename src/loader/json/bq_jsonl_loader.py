@@ -201,7 +201,7 @@ def load_ndjson_to_bigquery(date: str):
    
 # === HTTP Entry Point ===
 def http_entry_point(request):
-   if request.path == "/health":
+    if request.path == "/health":
         return ("ok", 200, {"Content-Type": "text/plain"})
   
     
