@@ -30,19 +30,17 @@ jobs:
 
       - name: 🛠️ Build Docker image
         run: |
-          docker build \
-            -t us-central1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/cloud-run-repo/loader-parquet \
-            ./src/loader/parquet
+          docker build -t us-central1-docker.pkg.dev/hygiene-prediction-434/cloud-run-repo/loader-parquet ./src/loader/parquet
 
       - name: 📤 Push Docker image
         run: |
-          docker push us-central1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/cloud-run-repo/loader-parquet
+          docker push us-central1-docker.pkg.dev/hygiene-prediction-434/cloud-run-repo/loader-parquet
 
       - name: 🚀 Deploy to Cloud Run
         run: |
           gcloud run deploy loader-parquet \
-            --image us-central1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/cloud-run-repo/loader-parquet \
-            --region ${{ secrets.REGION }} \
+            --image us-central1-docker.pkg.dev/hygiene-prediction-434/cloud-run-repo/loader-parquet \
+            --region us-central1 \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars BQ_PROJECT=${{ secrets.PROJECT_ID }},BQ_DATASET=HygienePredictionColumn,BQ_TABLE=CleanedInspectionColumn,BUCKET_NAME=raw-inspection-data-434,GCS_PREFIX=clean-data
+            --set-env-vars BQ_PROJECT=hygiene-prediction-434,BQ_DATASET=HygienePredictionColumn,BQ_TABLE=CleanedInspectionColumn,BUCKET_NAME=raw-inspection-data-434,GCS_PREFIX=clean-data
