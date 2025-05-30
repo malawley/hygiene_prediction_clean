@@ -189,38 +189,58 @@ def load_parquet_to_bigquery(date: str):
     return count, duration
 
 def http_entry_point(request):
+    """Cloud Run / HTTP function entry point."""
+    if request.path == "/health":
+        return ("ok", 200, {"Content-Type": "text/plain"})
+
     try:
         request_json = request.get_json()
-        logger.info(f"📥 Received HTTP request: {request_json}")
+        if not request_json:
+            return ("Invalid or missing JSON body", 400, {"Content-Type": "text/plain"})
 
+        logger.info(f"📥 Received HTTP request: {request_json}")
         date = request_json.get("date")
         if not date:
-            return ("Missing 'date' in request", 400, {"Content-Type": "text/plain"})
+            return ("Missing 'date' in request JSON", 400, {"Content-Type": "text/plain"})
 
-        start = time.time()
+        # Optional: strict format check (same as cleaner)
+        try:
+            datetime.strptime(date, "%Y-%m-%d")
+        except ValueError:
+            return ("Invalid 'date' format. Use YYYY-MM-DD.", 400, {"Content-Type": "text/plain"})
+
         log_active_credentials()
-
         ensure_table_parquet(BQ_TABLE, date)
         files_processed, duration = load_parquet_to_bigquery(date)
-        total_duration = round(time.time() - start, 3)
 
-        logger.info(f"✅ Parquet load completed for {date} in {total_duration} seconds")
-
-        return (
-            f"✅ Parquet load complete for {date}",
-            200,
-            {"Content-Type": "text/plain"}
-        )
+        return (f"✅ Parquet load complete for {date}", 200, {"Content-Type": "text/plain"})
 
     except Exception as e:
-        logger.exception("❌ Parquet loader failed")
+        logger.exception("❌ HTTP request failed")
         return (f"❌ Server error: {str(e)}", 500, {"Content-Type": "text/plain"})
 
+def health_check(environ, start_response):
+    response = Response("OK", status=200, content_type="text/plain")
+    return response(environ, start_response)
 
-
+# def wsgi_app(environ, start_response):
+#     request = Request(environ)
+#     if request.path == "/health":
+#         return health_check(environ, start_response)
+#     else:
+#         response_text, status, headers = http_entry_point(request)
+#         response = Response(response_text, status=status, headers=headers)
+#         return response(environ, start_response)
 
 def wsgi_app(environ, start_response):
     request = Request(environ)
     response_text, status, headers = http_entry_point(request)
     response = Response(response_text, status=status, headers=headers)
     return response(environ, start_response)
+
+
+# def wsgi_app(environ, start_response):
+#     request = Request(environ)
+#     response_text, status, headers = http_entry_point(request)
+#     response = Response(response_text, status=status, headers=headers)
+#     return response(environ, start_response)
