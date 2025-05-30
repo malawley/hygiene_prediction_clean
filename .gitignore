@@ -19,7 +19,28 @@ logs/
 
 # Documents
 *.pdf
+!Final_Report.pdf
+!docs/foodinspections_description.pdf
 
 # OS
 .DS_Store
+
+# Project folders
 project_videos/
+# Build artifacts
+src/**/build/
+*.exe
+*.bak
+*.zip
+
+# Python cache
+__pycache__/
+.ipynb_checkpoints/
+
+# Logs
+logs/
+src/**/logs/
+
+# Models and data
+models/
+data/
