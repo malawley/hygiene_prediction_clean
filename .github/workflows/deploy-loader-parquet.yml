@@ -30,8 +30,9 @@ jobs:
 
       - name: 🛠️ Build and push Docker image
         run: |
+          cd $GITHUB_WORKSPACE
           IMAGE=us-central1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/cloud-run-repo/loader-parquet
-          docker build -t $IMAGE ./src/loader/parquet
+          docker build -t $IMAGE src/loader/parquet
           docker push $IMAGE
 
       - name: 🚀 Deploy to Cloud Run
