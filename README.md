@@ -83,7 +83,8 @@ This is a fully deployed, cloud-native system. You **do not need to clone the re
 
 ## 📼 Project Demo Videos
 
-Full video documentation of each project stage is available in [`video_links.md`](video_links.md).
+Full video documentation of each project stage is available in [video_links.md](docs/video_links.md).
+
 
 ---
 
