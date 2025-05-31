@@ -1,0 +1,2 @@
+git clone https://github.com/malawley/hygiene_prediction_clean.git
+
