@@ -44,3 +44,4 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --set-env-vars BQ_PROJECT=hygiene-prediction-434,BQ_DATASET=HygienePredictionColumn,BQ_TABLE=CleanedInspectionColumn,BUCKET_NAME=raw-inspection-data-434,GCS_PREFIX=clean-data
+# ensure file update for workflow trigger
