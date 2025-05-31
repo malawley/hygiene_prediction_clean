@@ -1,138 +1,96 @@
-# 🧼 Hand Hygiene Violation Prediction in Chicago Restaurants
+# Project: Chicago Restaurant Health Inspection Machine Learning Pipeline 
 
-This project predicts whether a restaurant in Chicago is likely to receive a **hand hygiene–related violation** (e.g., lack of handwashing, missing soap, unsanitary sinks) during its next health inspection. Using publicly available inspection data from the City of Chicago, the goal is to identify risk patterns that can help public health departments prioritize inspections and prevent foodborne illness.
+This project develops an end to end machine learning pipeline based on the Chicago Open Portal Food Inspection Database. The use case for the pipeline is as follows:  
 
----
+A public health inspector has completed an inspection of a restaurant and has to decide whether it should be a pass, pass with condition, or fail. The decision needs to be consistent with general historical practice. The inspector needs a decision support tool that accepts data collected from the on-site inspection and makes a recommendation about pass, pass with condition, or fail that is consistent with historical inspection decisions. 
 
-## 🔍 Project Overview
-
-- **Domain:** Public Health, Machine Learning, City Data
-- **Goal:** Binary classification (hygiene violation: yes/no)
-- **Data Source:** [City of Chicago Food Inspections](https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5)
-- **Tech Stack:** Python, Pandas, Polars, Scikit-learn, Jupyter, FastAPI, GCP, AWS
+To support this use case, a cloud-native machine learning pipeline that collects, cleans, transforms, and stores data, supports exploratory data analysis, machine learning training and prediction, and inspection report generation has been created. The design architecture is a containerized set of microservices implemented in the Google Cloud Platform.
 
 ---
 
-## 🗂️ Project Structure
+## 📆 Project Overview
+
+* **Use Case:** Food safety inspection prioritization
+* **Domain:** Public Health, Cloud Data Engineering, ML Ops
+* **Pipeline Layers:**
+
+  * Data extraction from Chicago Open Data API
+  * Cleaning and validation
+  * Loading into BigQuery (Parquet + JSONL formats)
+  * Machine learning model training and prediction
+  * Dashboarding and risk score reporting
+* **Deployment Target:** Google Cloud Platform (GCP)
+
+---
+
+## ⚙️ Technologies Used
+
+* **Languages:** Python, Go
+* **Cloud:** Google Cloud Run, BigQuery, Cloud Storage
+* **CI/CD:** GitHub Actions, Docker
+* **Monitoring:** Prometheus + Grafana
+* **Orchestration:** Trigger microservice (Go)
+* **UI:** Streamlit dashboards for control and reporting
+
+---
+
+## 📁 Microservice Structure
 
 ```
-hand_hygiene_prediction/
-├── data/
-│   └── chicago_food_inspections.csv       # raw dataset
-├── notebooks/
-│   ├── 01_eda.ipynb                        # initial data exploration
-│   ├── 02_feature_engineering.ipynb        # target + feature prep
-│   └── 03_model_training.ipynb             # training and evaluation
-├── models/
-│   └── hygiene_model.pkl                   # saved model (optional)
+hygiene_prediction/
 ├── src/
-│   └── hygiene_cleaning.py                 # data cleaning functions
-├── hygiene_predictor.py                    # script for batch predictions
-├── app.py                                  # (optional) FastAPI service
-├── environment.yml                         # Conda environment
-├── requirements.txt                        # pip-based environment
-├── setup.bat                               # Windows setup script
-├── post_setup.py                           # Downloads NLP resources
-└── README.md
+│   ├── extractor/         # Go service to pull API data to GCS
+│   ├── cleaner/           # Python service to clean and standardize data
+│   ├── loader/json/       # Python loader to ingest NDJSON into BigQuery (row-level)
+│   ├── loader/parquet/    # Python loader to ingest Parquet into BigQuery (columnar)
+│   ├── trigger/           # Go-based service to orchestrate pipeline steps
+│   └── dashboards/        # Streamlit-based EDA + ML dashboards
+├── docs/                  # Design documentation, PDFs, specs
+├── .github/workflows/     # GitHub Actions deployment configs
+├── Makefile               # Task automation (build, deploy, clean)
+└── video_links.md         # Weekly Panopto demo recordings
 ```
 
 ---
 
-## 🧪 Modeling Approach
+## 🚀 How to Download and Run the System
 
-1. **Target variable:** 
-   - 1 if the inspection report includes a hand hygiene–related violation
-   - 0 otherwise
-
-2. **Key features:**
-   - Risk level (`risk`)
-   - Inspection type (`inspection_type`)
-   - Date info (month, day of week)
-   - ZIP code
-   - Past violation counts (if available)
-
-3. **Models used:**
-   - Logistic Regression
-   - Random Forest
-   - XGBoost (optional)
-
-4. **Evaluation Metrics:**
-   - Accuracy, Precision, Recall, F1 Score
-   - ROC-AUC for imbalanced classification
-
----
-
-## 📈 Example Use Cases
-
-- Public health inspectors can prioritize high-risk locations.
-- Restaurant groups can monitor compliance and reduce violations.
-- Future expansion to other hygiene categories or cities.
-
----
-
-## 🛠️ Environment Setup
-
-This project supports both **Conda (recommended)** and **pip-based** setups.
-
-### ✅ Option 1: Conda (recommended)
+### 1. Clone the repository
 
 ```bash
-conda env create -f environment.yml
-conda activate hygiene-ml
-python post_setup.py  # Downloads NLTK and spaCy models
+git clone https://github.com/malawley/hygiene_prediction.git
+cd hygiene_prediction
 ```
 
-### ✅ Option 2: pip (for virtualenv, Docker, etc.)
+### 2. Set up your Python environment
 
 ```bash
 python -m venv venv
-venv\Scripts\activate     # Windows
-# or
-source venv/bin/activate  # macOS/Linux
-
-pip install -r requirements.txt
+source venv/bin/activate
+pip install -r src/cleaner/requirements.txt
 ```
+
+### 3. Deploy the entire system using GitHub Actions
+
+* On commit to `main`, Docker containers are built and deployed to Cloud Run.
+* Secrets and configuration are stored in GitHub Actions and GCP IAM.
 
 ---
 
-## 🚀 Running the Project
+## 📊 Monitoring & Observability
 
-To launch JupyterLab:
-
-```bash
-jupyter lab
-```
-
-To launch classic Jupyter Notebook:
-
-```bash
-jupyter notebook
-```
-
-To run the FastAPI app (if included):
-
-```bash
-uvicorn app:app --reload
-```
+* Prometheus metrics exposed at `/metrics` in the extractor
+* Grafana dashboard connected to Cloud Run metrics
+* Health check endpoints for all services available at `/health`
 
 ---
 
-## 🧩 File Descriptions
+## 📼 Project Demo Videos
 
-- `environment.yml` – Full Conda-based environment with ML, NLP, and cloud tools  
-- `requirements.txt` – Pip-based dependency list for virtualenv or Docker use  
-- `setup.bat` – Windows batch script for quick setup  
-- `post_setup.py` – Downloads NLTK and spaCy resources  
-
----
-
-## 🤝 Contributing
-
-Pull requests are welcome! Please open an issue first to discuss any major changes.  
-Make sure your code follows the existing style and is well-documented.
+Full video documentation of each project stage is available in [`video_links.md`](video_links.md).
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License. See `LICENSE` for details.
+MIT License — see `LICENSE` file for details.

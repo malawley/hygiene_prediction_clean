@@ -44,3 +44,6 @@ src/**/logs/
 # Models and data
 models/
 data/
+github-deployer-key.json     # GCP service account key for GitHub Actions CI/CD
+grafana-key.json             # GCP service account key for Grafana BQ access
+hygiene-key.json             # GCP service account key for pipeline microservices

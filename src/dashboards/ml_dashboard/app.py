@@ -104,3 +104,5 @@ elif section == "📊 Generate Risk Report":
 
         except Exception as e:
             st.exception(f"🚨 Failed to reach backend: {e}")
+            
+            

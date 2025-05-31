@@ -83,6 +83,7 @@
       "options": {
         "barRadius": 0.5,
         "barWidth": 0.1,
+        "colorByField": "gcs_failure_flag",
         "fullHighlight": false,
         "groupWidth": 0.7,
         "legend": {
@@ -201,6 +202,7 @@
       "options": {
         "barRadius": 0.5,
         "barWidth": 0.12,
+        "colorByField": "fetch_skipped_flag",
         "fullHighlight": false,
         "groupWidth": 0.7,
         "legend": {
@@ -347,7 +349,7 @@
           "location": "",
           "project": "hygiene-prediction-434",
           "rawQuery": true,
-          "rawSql": "SELECT\r\n  timestamp,\r\n  rows_extracted,\r\n  rows_dropped\r\nFROM\r\n  `hygiene-prediction-434.PipelineMonitoring.chunk_metrics`\r\nORDER BY\r\n  timestamp ASC\r\n\r\n\r\n",
+          "rawSql": "SELECT\r\n  CAST(offset AS STRING) AS chunk_label,\r\n  rows_extracted,\r\n  rows_dropped\r\nFROM\r\n  `hygiene-prediction-434.PipelineMonitoring.chunk_metrics`\r\nORDER BY\r\n  offset ASC\r\n\r\n\r\n",
           "refId": "A",
           "sql": {
             "columns": [
@@ -412,7 +414,7 @@
               },
               {
                 "color": "red",
-                "value": 15
+                "value": 20
               }
             ]
           },
@@ -503,5 +505,5 @@
   "timezone": "browser",
   "title": "Project Pipeline Chunk Metrics Dashboard",
   "uid": "c078bb67-5032-491b-b183-80344b343273",
-  "version": 1
+  "version": 4
 }
