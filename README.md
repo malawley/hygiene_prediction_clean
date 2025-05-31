@@ -27,6 +27,15 @@ To support this use case, a cloud-native machine learning pipeline that collects
 
 ---
 
+## 📆 Pipeline Schematic
+
+The diagram below shows how data flows through the hygiene prediction pipeline.
+
+![Pipeline Architecture](docs/pipeline_schematic.png)
+
+
+---
+
 ## ⚙️ Technologies Used
 
 * **Languages:** Python, Go
@@ -68,7 +77,7 @@ This is a fully deployed, cloud-native system. You **do not need to clone the re
 > - View dashboards
 > - Monitor system health
 > - Test error injection
-> - Confirm CI/CD redeployments (this requires cloning and setup)
+> - Confirm CI/CD redeployments (this requires cloning and setup and is only implemented for the loaders)
 
 ---
 
