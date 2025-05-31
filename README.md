@@ -57,35 +57,18 @@ hygiene_prediction_clean/
 
 ---
 
-## 🚀 How to Download and Run the System
 
-### 1. Clone the repository
+### 👥 For Users / Reviewers
 
-```bash
-git clone https://github.com/malawley/hygiene_prediction_clean.git
-cd hygiene_prediction
-```
+This is a fully deployed, cloud-native system. You **do not need to clone the repository** to interact with it.
 
-### 2. Set up your Python environment
-
-```bash
-python -m venv venv
-source venv/bin/activate
-pip install -r src/cleaner/requirements.txt
-```
-
-### 3. Deploy the entire system using GitHub Actions
-
-* On commit to `main`, Docker containers are built and deployed to Cloud Run.
-* Secrets and configuration are stored in GitHub Actions and GCP IAM.
-
----
-
-## 📊 Monitoring & Observability
-
-* Prometheus metrics exposed at `/metrics` in the extractor
-* Grafana dashboard connected to Cloud Run metrics
-* Health check endpoints for all services available at `/health`
+> 📘 **See the Live Demo Guide:**  
+> Use the [Demo Usage Guide](docs/demo_guide.md) to:
+> - Trigger the pipeline
+> - View dashboards
+> - Monitor system health
+> - Test error injection
+> - Confirm CI/CD redeployments (this requires cloning and setup)
 
 ---
 
