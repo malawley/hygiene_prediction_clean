@@ -6,6 +6,10 @@ A public health inspector has completed an inspection of a restaurant and has to
 
 To support this use case, a cloud-native machine learning pipeline that collects, cleans, transforms, and stores data, supports exploratory data analysis, machine learning training and prediction, and inspection report generation has been created. The design architecture is a containerized set of microservices implemented in the Google Cloud Platform.
 
+> 📘 **Looking for the walkthrough?**  
+> Check out the full [Demo Usage Guide](docs/demo_guide.md) to run the pipeline, view dashboards, and test CI/CD.
+
+
 ---
 
 ## 📆 Project Overview
@@ -37,7 +41,7 @@ To support this use case, a cloud-native machine learning pipeline that collects
 ## 📁 Microservice Structure
 
 ```
-hygiene_prediction/
+hygiene_prediction_clean/
 ├── src/
 │   ├── extractor/         # Go service to pull API data to GCS
 │   ├── cleaner/           # Python service to clean and standardize data
@@ -58,7 +62,7 @@ hygiene_prediction/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/malawley/hygiene_prediction.git
+git clone https://github.com/malawley/hygiene_prediction_clean.git
 cd hygiene_prediction
 ```
 
