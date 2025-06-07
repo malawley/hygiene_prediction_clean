@@ -1,9 +1,19 @@
-__pycache__/ 
-*.pyc 
-*.pyo 
-*.pyd 
-.env 
-.vscode/ 
-*.log 
-*.csv 
-tests/ 
+# Python artifacts
+__pycache__/
+*.pyc
+*.log
+
+# Backend or unrelated code/data
+hygiene-key.json
+supervisord.conf
+backend/
+models/
+notebooks/
+repeatability/
+risk_report_inputs.yaml
+static/
+landing_page.py
+dataset_policy.json
+z_stuff/
+ml-db.log
+deploy-ml-dashboard.ps1

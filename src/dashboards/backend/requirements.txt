@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+pydantic
+pandas
+numpy
+joblib
+requests
+PyYAML
+google-cloud-storage
+google-cloud-bigquery
+python-dotenv 
+db-dtypes
+scikit-learn
+xgboost
+google-auth==2.29.0

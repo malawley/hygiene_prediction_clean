@@ -85,8 +85,10 @@ elif section == "📊 Generate Risk Report":
         start_time = time.time()
 
         try:
+            BACKEND_URL = os.getenv("BACKEND_URL", "https://REPLACE_ME_WITH_BACKEND_URL")
+            print("🌐 BACKEND_URL being used:", BACKEND_URL)
             response = requests.post(
-                "http://127.0.0.1:8090/generate_report",
+                f"{BACKEND_URL}/generate_report",
                 json=request_payload,
                 headers={"Content-Type": "application/json"}
             )
@@ -104,5 +106,9 @@ elif section == "📊 Generate Risk Report":
 
         except Exception as e:
             st.exception(f"🚨 Failed to reach backend: {e}")
+
             
-            
+# rebuild marker Fri Jun  6 19:32:37 CDT 2025
+# 🔁 Trigger rebuild Fri Jun  6 19:40:58 CDT 2025
+# rebuild trigger Fri Jun  6 20:54:27 CDT 2025
+# rebuild trigger Fri Jun  6 20:56:01 CDT 2025

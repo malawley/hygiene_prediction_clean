@@ -135,6 +135,20 @@ deploy-pipeline-monitor:
 	  --memory=1Gi \
 	  --timeout=300
 
+deploy-ml-dashboard:
+	@export TAG=ml-dashboard:v$$(date +%Y%m%d%H%M%S) && \
+	docker build -t $$TAG ./ml_dashboard && \
+	docker tag $$TAG us-central1-docker.pkg.dev/hygiene-prediction-434/ml-dashboard-clean/$$TAG && \
+	gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev && \
+	docker push us-central1-docker.pkg.dev/hygiene-prediction-434/ml-dashboard-clean/$$TAG && \
+	gcloud run deploy ml-dashboard \
+	  --image=us-central1-docker.pkg.dev/hygiene-prediction-434/ml-dashboard-clean/$$TAG \
+	  --platform=managed \
+	  --region=us-central1 \
+	  --allow-unauthenticated \
+	  --memory=1Gi \
+	  --timeout=300 \
+	  --port=8501
 
 
 
@@ -248,7 +262,7 @@ push:
 # === DEPLOY TO CLOUD RUN WITH OPTIONAL TRIGGER_URL ===
 # === DEPLOY ANY SERVICE TO CLOUD RUN (OPTIONALLY SET TRIGGER_URL) ===
 # === DEPLOY EACH SERVICE TO CLOUD RUN (STEP 1) ===
-# Note that the python program, deploy_images.py, in the root directory will perform this 
+# Note that the python program, deploy/deploy_images.py, in the root directory will perform this 
 # automatically for each of the services (it is executable, 
 # run ./deploy_images)
 #--set-env-vars=$$ENV_VARS
@@ -295,10 +309,10 @@ cloud_deploy:
 	@SERVICE=$(word 2, $(MAKECMDGOALS)); \
 	if [ -n "$$SERVICE" ]; then \
 		echo "🚀 Deploying only: $$SERVICE"; \
-		python3 cloud_deploy.py --only $$SERVICE; \
+		python3 deploy/cloud_deploy.py --only $$SERVICE; \
 	else \
 		echo "🚀 Running full pipeline deployment..."; \
-		python3 cloud_deploy.py; \
+		python3 deploy/cloud_deploy.py; \
 	fi
 
 cloud_deploy-%: cloud_deploy
@@ -356,7 +370,7 @@ delete-cloud:
 
 deploy-all:
 	@echo "🚀 Running full pipeline deployment..."
-	python3 cloud_deploy.py 
+	python3 deploy/cloud_deploy.py 
 
 
 
