@@ -29,7 +29,6 @@ This dashboard serves as the control center for the pipeline. It allows users to
 
 - **Check Service Status**
   - Green = alive, Red = unreachable
-  - Note that some latency is involved in 'waking up' microservices running on Cloud Run, so they might not all appear as 'Alive' to begin with, especially the Chicago API.
 
 - **View Current Storage State**
   - GCS file counts and BQ table row counts are displayed
@@ -61,7 +60,10 @@ This dashboard serves as the control center for the pipeline. It allows users to
 - Expect delays for longer data loads or if error simulation is enabled
 - Additional dashboards (EDA, ML results) will be added in subsequent sections
 
+<br><br>
 
+<br>
+<br>
 
 <br><br>
 
@@ -168,6 +170,7 @@ Content-Type: application/json
 }
 ```
 
+Make sure the backend microservice is deployed and reachable from the frontend for the report generation to work.
 
 <br>
 <br>
